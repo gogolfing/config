@@ -1,0 +1,10 @@
+{
+  "name": "config.json",
+  "description": "This is a test",
+  "object": {
+    "object_entry": "This is an object entry value",
+    "nested": {
+        "nested_object": "Nested"
+    }
+  }
+}
