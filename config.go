@@ -29,8 +29,7 @@ func New(filePath string) {
 }
 
 func GetString(key, backup string) string {
-	keys := strings.Split(key, ".")
-	val := get(keys)
+	val := get(key)
 
 	if val == nil {
 		return backup
@@ -40,8 +39,7 @@ func GetString(key, backup string) string {
 }
 
 func GetInt(key string, backup int) int {
-	keys := strings.Split(key, ".")
-	val := get(keys)
+	val := get(key)
 
 	if val == nil {
 		return backup
@@ -51,8 +49,7 @@ func GetInt(key string, backup int) int {
 }
 
 func GetBool(key string, backup bool) bool {
-	keys := strings.Split(key, ".")
-	val := get(keys)
+	val := get(key)
 
 	if val == nil {
 		return backup
@@ -62,8 +59,7 @@ func GetBool(key string, backup bool) bool {
 }
 
 func GetFloat64(key string, backup float64) float64 {
-	keys := strings.Split(key, ".")
-	val := get(keys)
+	val := get(key)
 
 	if val == nil {
 		return backup
@@ -72,7 +68,8 @@ func GetFloat64(key string, backup float64) float64 {
 	return val.(float64)
 }
 
-func get(keys []string) interface{} {
+func get(key string) interface{} {
+	keys := strings.Split(key, ".")
 	var ret interface{}
 
 	for _, k := range keys {
