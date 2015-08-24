@@ -1,6 +1,10 @@
 {
   "name": "config.json",
   "description": "This is a test",
+  "int_test": 1234,
+  "bool_test": true,
+  "float_test": 3.14,
+
   "object": {
     "object_entry": "This is an object entry value",
     "nested": {

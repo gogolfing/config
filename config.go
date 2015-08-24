@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"strings"
 )
 
 var test map[string]interface{}
@@ -28,12 +29,47 @@ func New(filePath string) {
 }
 
 func GetString(key, backup string) string {
-	keys := parseKey(key)
+	keys := strings.Split(key, ".")
 	val := get(keys)
+
 	if val == nil {
 		return backup
 	}
+
 	return val.(string)
+}
+
+func GetInt(key string, backup int) int {
+	keys := strings.Split(key, ".")
+	val := get(keys)
+
+	if val == nil {
+		return backup
+	}
+
+	return int(val.(float64))
+}
+
+func GetBool(key string, backup bool) bool {
+	keys := strings.Split(key, ".")
+	val := get(keys)
+
+	if val == nil {
+		return backup
+	}
+
+	return val.(bool)
+}
+
+func GetFloat64(key string, backup float64) float64 {
+	keys := strings.Split(key, ".")
+	val := get(keys)
+
+	if val == nil {
+		return backup
+	}
+
+	return val.(float64)
 }
 
 func get(keys []string) interface{} {
@@ -46,25 +82,8 @@ func get(keys []string) interface{} {
 		}
 		ret = test[k]
 	}
+
 	return ret
-}
-
-func parseKey(key string) []string {
-	keys := []string{}
-	runes := []rune(key)
-
-	buff := []rune{}
-	for _, r := range runes {
-		if r == '.' {
-			keys = append(keys, string(buff))
-			buff = []rune{}
-			continue
-		}
-		buff = append(buff, r)
-	}
-	keys = append(keys, string(buff))
-
-	return keys
 }
 
 func Parse() {
