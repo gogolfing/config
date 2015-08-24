@@ -2,21 +2,16 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"strings"
 )
 
-var test map[string]interface{}
+var data map[string]interface{}
 var configFile []byte
-var index int
-
-var finalMap map[string]string
 
 func init() {
-	finalMap = map[string]string{}
-	test = map[string]interface{}{}
+	data = map[string]interface{}{}
 }
 
 func New(filePath string) {
@@ -26,6 +21,10 @@ func New(filePath string) {
 	if err != nil {
 		log.Fatal("There was an error opening the config file!")
 	}
+}
+
+func Parse() {
+	json.Unmarshal(configFile, &data)
 }
 
 func GetString(key, backup string) string {
@@ -77,16 +76,8 @@ func get(key string) interface{} {
 			ret = ret.(map[string]interface{})[k]
 			continue
 		}
-		ret = test[k]
+		ret = data[k]
 	}
 
 	return ret
-}
-
-func Parse() {
-	json.Unmarshal(configFile, &test)
-}
-
-func Print() {
-	fmt.Println(test)
 }
