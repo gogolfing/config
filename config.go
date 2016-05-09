@@ -1,83 +1,50 @@
 package config
 
-import (
-	"encoding/json"
-	"io/ioutil"
-	"log"
-	"strings"
-)
+import "strings"
 
-var data map[string]interface{}
-var configFile []byte
+type Config struct {
+	Separator string
 
-func init() {
-	data = map[string]interface{}{}
+	set
 }
 
-func New(filePath string) {
-	var err error
+func New() *Config {
+	return &Config{
+		Separator: ".",
 
-	configFile, err = ioutil.ReadFile(filePath)
-	if err != nil {
-		log.Fatal("There was an error opening the config file!")
+		set: newSet(),
 	}
 }
 
-func Parse() {
-	json.Unmarshal(configFile, &data)
+func (c *Config) Get(key string) interface{} {
+	v, _ := c.GetOk(key)
+	return v
 }
 
-func GetString(key, backup string) string {
-	val := get(key)
-
-	if val == nil {
-		return backup
-	}
-
-	return val.(string)
+func (c *Config) GetOk(key string) (interface{}, bool) {
+	return nil, false
 }
 
-func GetInt(key string, backup int) int {
-	val := get(key)
-
-	if val == nil {
-		return backup
-	}
-
-	return int(val.(float64))
+func (c *Config) Put(key string, value interface{}) bool {
+	return c.PutKey(c.NewKey(key), value)
 }
 
-func GetBool(key string, backup bool) bool {
-	val := get(key)
-
-	if val == nil {
-		return backup
-	}
-
-	return val.(bool)
+func (c *Config) PutKey(key Key, value interface{}) bool {
+	return false
 }
 
-func GetFloat64(key string, backup float64) float64 {
-	val := get(key)
-
-	if val == nil {
-		return backup
-	}
-
-	return val.(float64)
+func (c *Config) NewKey(source string) Key {
+	return NewKey(source, c.Separator)
 }
 
-func get(key string) interface{} {
-	keys := strings.Split(key, ".")
-	var ret interface{}
+type Key []string
 
-	for _, k := range keys {
-		if ret != nil {
-			ret = ret.(map[string]interface{})[k]
-			continue
-		}
-		ret = data[k]
-	}
+func NewKey(source, sep string) Key {
+	return Key(strings.Split(source, sep))
+}
 
-	return ret
+type set map[string]interface{}
+
+func newSet() set {
+	return set(map[string]interface{}{})
 }
