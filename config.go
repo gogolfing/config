@@ -5,16 +5,18 @@ import "sync"
 type Config struct {
 	Separator string
 
-	lock *sync.RWMutex
-	set  Set
+	lock    *sync.RWMutex
+	set     Set
+	loaders []Loader
 }
 
 func New() *Config {
 	return &Config{
 		Separator: ".",
 
-		lock: &sync.RWMutex{},
-		set:  NewSet(),
+		lock:    &sync.RWMutex{},
+		set:     NewSet(),
+		loaders: []Loader{},
 	}
 }
 

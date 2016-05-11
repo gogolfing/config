@@ -10,7 +10,10 @@ func TestNew(t *testing.T) {
 	if c.Separator != "." {
 		t.Fail()
 	}
-	if c.lock == nil || c.set == nil {
+	if c.lock == nil {
+		t.Fail()
+	}
+	if c.set == nil || c.loaders == nil {
 		t.Fail()
 	}
 }
