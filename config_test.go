@@ -36,10 +36,10 @@ func TestConfig_Get(t *testing.T) {
 func TestConfig_GetBool(t *testing.T) {
 	c := New()
 	c.Put("yes", true)
-	if c.Get("yes") != true {
+	if c.GetBool("yes") != true {
 		t.Fail()
 	}
-	if c.Get("no") == true {
+	if c.GetBool("no") == true {
 		t.Fail()
 	}
 }
@@ -244,6 +244,16 @@ func TestConfig_GetOk(t *testing.T) {
 		if !reflect.DeepEqual(value, test.value) || ok != test.ok {
 			t.Errorf("c.GetOk(%v) = %v, %v WANT %v, %v", test.key, value, ok, test.value, test.ok)
 		}
+	}
+}
+
+func TestConfig_GetKeyOk_returnsNilForEmptyKeys(t *testing.T) {
+	c := New()
+	if v, ok := c.GetKeyOk(nil); v != nil || ok {
+		t.Fail()
+	}
+	if v, ok := c.GetKeyOk(Key([]string{})); v != nil || ok {
+		t.Fail()
 	}
 }
 
