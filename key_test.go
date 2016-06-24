@@ -31,3 +31,11 @@ func TestNewKey(t *testing.T) {
 		}
 	}
 }
+
+func TestNewKeyValue(t *testing.T) {
+	key := NewKey("key", ".")
+	keyValue := NewKeyValue(key, "value")
+	if !reflect.DeepEqual(keyValue.Key, key) || keyValue.Value != "value" {
+		t.Fail()
+	}
+}

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -13,9 +14,39 @@ func TestNew(t *testing.T) {
 	if c.lock == nil {
 		t.Fail()
 	}
-	if c.set == nil || c.loaders == nil {
+	if c.m == nil || c.loaders == nil {
 		t.Fail()
 	}
+}
+
+func TestConfif_AddLoader(t *testing.T) {
+	c := New()
+	c.AddLoader(intLoader(0))
+	if c.loaders[0] != intLoader(0) {
+		t.Fail()
+	}
+}
+
+func TestConfig_LoadAll(t *testing.T) {
+	c := New()
+	c.AddLoader(intLoader(1))
+	c.AddLoader(intLoader(2))
+	c.LoadAll()
+
+	if v, ok := c.GetOk("1"); v != intLoader(1) || !ok {
+		t.Fail()
+	}
+	if v, ok := c.GetOk("2"); v != intLoader(2) || !ok {
+		t.Fail()
+	}
+}
+
+type intLoader int
+
+func (i intLoader) Load() ([]KeyValue, error) {
+	return []KeyValue{
+		{Key: NewKey(fmt.Sprint(int(i)), ""), Value: i},
+	}, nil
 }
 
 func TestConfig_Get(t *testing.T) {
@@ -234,13 +265,14 @@ func TestConfig_GetOk(t *testing.T) {
 		{"one", "one", true},
 		{"One", nil, false},
 		{"ten", nil, false},
-		{"two", Set(map[string]interface{}{"three": "three"}), true},
+		{"two", Map(map[string]interface{}{"three": "three"}), true},
 		{"four.five.six", "six", true},
 		{"four.five.seven", 7, true},
 		{"four.ten", nil, false},
 		{"four.five.ten", nil, false},
 		{"four.five.six.todeep", nil, false},
 		{"four.five.six.todeep.reallydeep", nil, false},
+		{"four.five", Map(map[string]interface{}{"six": "six", "seven": 7}), true},
 	}
 	for _, test := range tests {
 		value, ok := c.GetOk(test.key)
@@ -284,19 +316,19 @@ func TestConfig_Put_overwrite(t *testing.T) {
 	if !changed {
 		t.Fail()
 	}
-	if _, ok := c.set["one"].(Set)["two"].(Set); !ok {
+	if _, ok := c.m["one"].(Map)["two"].(Map); !ok {
 		t.Fail()
 	}
 }
 
 func TestConfig_Put_underwrite(t *testing.T) {
 	c := New()
-	c.Put("one.two.three", NewSet())
+	c.Put("one.two.three", NewMap())
 	changed := c.Put("one.two", "two")
 	if !changed {
 		t.Fail()
 	}
-	if c.set["one"].(Set)["two"] != "two" {
+	if c.m["one"].(Map)["two"] != "two" {
 		t.Fail()
 	}
 }

@@ -5,20 +5,32 @@ import "sync"
 type Config struct {
 	Separator string
 
-	lock    *sync.RWMutex
-	set     Set
-	loaders []Loader
+	lock *sync.RWMutex
+	m    Map
+	// loaders []Loader
 }
 
 func New() *Config {
 	return &Config{
 		Separator: ".",
 
-		lock:    &sync.RWMutex{},
-		set:     NewSet(),
-		loaders: []Loader{},
+		lock: &sync.RWMutex{},
+		m:    NewMap(),
+		// loaders: []Loader{},
 	}
 }
+
+/*
+func (c *Config) AddLoader(loader Loader) {
+	c.loaders = append(c.loaders, loader)
+}
+*/
+
+/*
+func (c *Config) LoadAll() error {
+	return c.PutLoaders(c.loaders...)
+}
+*/
 
 func (c *Config) Get(key string) interface{} {
 	v, _ := c.GetOk(key)
@@ -57,23 +69,22 @@ func (c *Config) GetInt(key string) int {
 }
 
 func (c *Config) GetIntOk(key string) (int, bool) {
-	v, _ := c.GetOk(key)
-	result, ok := 0, false
-	switch v.(type) {
+	value, _ := c.GetOk(key)
+	switch v := value.(type) {
 	case int8:
-		result, ok = int(v.(int8)), true
+		return int(v), true
 	case uint8:
-		result, ok = int(v.(uint8)), true
+		return int(v), true
 	case int16:
-		result, ok = int(v.(int16)), true
+		return int(v), true
 	case uint16:
-		result, ok = int(v.(uint16)), true
+		return int(v), true
 	case int32:
-		result, ok = int(v.(int32)), true
+		return int(v), true
 	case int:
-		result, ok = v.(int), true
+		return v, true
 	}
-	return result, ok
+	return 0, false
 }
 
 func (c *Config) GetInt64(key string) int64 {
@@ -125,64 +136,45 @@ func (c *Config) GetOk(key string) (interface{}, bool) {
 }
 
 func (c *Config) GetKeyOk(key Key) (interface{}, bool) {
-	if len(key) == 0 {
-		return nil, false
-	}
-
 	c.lock.RLock()
 	defer c.lock.RUnlock()
+	return c.m.GetOk(key)
+}
 
-	var value interface{} = c.set
-	ok := false
-	for _, keyPart := range key {
-		_, ok = value.(Set)
-		if !ok {
-			return nil, false
+/*
+func (c *Config) PutLoaders(loaders ...Loader) error {
+	result := []KeyValue{}
+	for _, loader := range loaders {
+		keyValues, err := loader.Load()
+		if err != nil {
+			return err
 		}
-		value, ok = value.(Set)[keyPart]
+		for _, keyValue := range keyValues {
+			result = append(result, keyValue)
+		}
 	}
-
-	return externalValue(value), ok
-}
-
-func externalValue(value interface{}) interface{} {
-	if valueSet, ok := value.(Set); ok {
-		return valueSet.clone()
+	for _, keyValue := range result {
+		c.PutKey(keyValue.Key, keyValue.Value)
 	}
-	return value
+	return nil
 }
+*/
 
 func (c *Config) Put(key string, value interface{}) bool {
 	return c.PutKey(c.NewKey(key), value)
 }
 
 func (c *Config) PutKey(key Key, value interface{}) bool {
-	if len(key) == 0 {
-		return false
-	}
 	c.lock.Lock()
 	defer c.lock.Unlock()
+	return c.m.Put(c.convertKeyValue(key, value))
+}
 
-	lastSet := c.set
-	changed := false
-	for i := 0; i < len(key)-1; i++ {
-		keyPart := key[i]
-		tempValue := lastSet[keyPart]
-		tempSet, tempSetOk := tempValue.(Set)
-		if !tempSetOk {
-			tempSet = NewSet()
-			lastSet[keyPart] = tempSet
-			changed = true
-		}
-		lastSet = tempSet
+func (c *Config) convertKeyValue(key Key, value interface{}) (Key, interface{}) {
+	if len(key) == 0 {
+		return key, value
 	}
-
-	lastPart := key[len(key)-1]
-	oldValue := lastSet[lastPart]
-	changed = changed || (oldValue != value)
-	lastSet[lastPart] = value
-
-	return changed
+	return key, value
 }
 
 func (c *Config) NewKey(source string) Key {
