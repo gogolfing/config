@@ -106,7 +106,7 @@ func (n *node) setValue(value interface{}) bool {
 
 func (n *node) setValues(values *Values) bool {
 	changed := false
-	n.eachKeyValue(nil, func(key Key, value interface{}) bool {
+	values.EachKeyValue(func(key Key, value interface{}) bool {
 		changed = n.put(key, value) || changed
 		return false
 	})

@@ -458,6 +458,7 @@ func TestValues_put(t *testing.T) {
 		{
 			[]KeyValue{
 				NewKeyValue(NewKey("a"), "a"),
+				NewKeyValue(NewKey("b"), "b"),
 			},
 			nil,
 			"value",
@@ -468,20 +469,63 @@ func TestValues_put(t *testing.T) {
 				children: nil,
 			},
 		},
-		//empty *Values at non empty root
+		//single value *Values at single value root with no change
+		{
+			[]KeyValue{
+				NewKeyValue(nil, "value"),
+			},
+			nil,
+			"value",
+			false,
+			&node{
+				value:    "value",
+				set:      true,
+				children: nil,
+			},
+		},
+		//single value *Values at single value root with change
+		{
+			[]KeyValue{
+				NewKeyValue(nil, 2),
+			},
+			nil,
+			"value",
+			true,
+			&node{
+				value:    "value",
+				set:      true,
+				children: nil,
+			},
+		},
+		//empty *Values at single value root
 		{
 			[]KeyValue{
 				NewKeyValue(NewKey("a"), "a"),
 			},
 			nil,
 			NewValues(),
-			false,
+			//this one fails
+			true,
 			&node{
-				value: nil,
-				set:   false,
-				children: map[string]*node{
-					"a": newNodeValue("a"),
-				},
+				value:    nil,
+				set:      false,
+				children: nil,
+			},
+		},
+		//empty *Values at non empty root
+		{
+			[]KeyValue{
+				NewKeyValue(NewKey("a"), "a"),
+				NewKeyValue(NewKey("b"), "b"),
+			},
+			nil,
+			NewValues(),
+			//this one fails
+			true,
+			&node{
+				value:    nil,
+				set:      false,
+				children: nil,
 			},
 		},
 		//non empty *Values at empty root
@@ -495,7 +539,14 @@ func TestValues_put(t *testing.T) {
 				return v
 			}(),
 			true,
-			&node{},
+			&node{
+				value: nil,
+				set:   false,
+				children: map[string]*node{
+					"a": newNodeValue("a"),
+					"b": newNodeValue("b"),
+				},
+			},
 		},
 		//non empty *Values at non empty root
 		// this will be multiple cases
