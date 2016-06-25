@@ -29,6 +29,10 @@ type node struct {
 	children map[string]*node
 }
 
+func (n *node) String() string {
+	return fmt.Sprintf("&%v", *n)
+}
+
 func newNodeValue(value interface{}) *node {
 	n := newNode()
 	n.value, n.set = value, true
@@ -51,12 +55,9 @@ func newNode() *node {
 
 func (n *node) put(key Key, value interface{}) bool {
 	if len(key) == 0 {
-		return false
+		return n.setValue(value)
 	}
 	child, changed := n.getChild(key[0])
-	if len(key) == 1 {
-		return n.putLastKeyPart(key[0], child, value) || changed
-	}
 	remainingKey := key[1:]
 	return child.put(remainingKey, value) || changed
 }
