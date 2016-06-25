@@ -1,15 +1,26 @@
 package config
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
 
 type Values struct {
+	lock *sync.RWMutex
 	root *node
 }
 
 func NewValues() *Values {
 	return &Values{
-		root: newNodeValue(nil),
+		lock: &sync.RWMutex{},
+		root: newNode(),
 	}
+}
+
+func (v *Values) Put(key Key, value interface{}) bool {
+	v.lock.Lock()
+	defer v.lock.Unlock()
+	return v.root.put(key, value)
 }
 
 type node struct {
@@ -51,22 +62,12 @@ func (n *node) put(key Key, value interface{}) bool {
 }
 
 func (n *node) putLastKeyPart(keyPart string, child *node, value interface{}) bool {
-	_, ok := isValues(value)
+	_, ok := value.(*Values)
 	if ok {
 		fmt.Println("************************************* need to implement putting values")
 		return true
 	}
 	return child.setValue(value)
-}
-
-func isValues(value interface{}) (*Values, bool) {
-	if values, ok := value.(*Values); ok {
-		return values, ok
-	}
-	if values, ok := value.(Values); ok {
-		return &values, ok
-	}
-	return nil, false
 }
 
 func (n *node) getChild(key string) (*node, bool) {
@@ -89,6 +90,9 @@ func (n *node) getChild(key string) (*node, bool) {
 }
 
 func (n *node) setValue(value interface{}) bool {
+	if _, ok := value.(*Values); ok {
+		fmt.Println("setValue() called with *Values ***********************************")
+	}
 	changed := false
 	if n.set {
 		changed = value != n.value

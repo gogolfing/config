@@ -39,3 +39,7 @@ func TestNewKeyValue(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func newKey(values ...string) Key {
+	return Key(values)
+}

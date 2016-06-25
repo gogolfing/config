@@ -6,40 +6,40 @@ import (
 	"testing"
 )
 
-func TestNew(t *testing.T) {
-	c := New()
-	if c.Separator != "." {
-		t.Fail()
-	}
-	if c.lock == nil {
-		t.Fail()
-	}
-	if c.m == nil || c.loaders == nil {
-		t.Fail()
-	}
-}
+// func TestNew(t *testing.T) {
+// 	c := New()
+// 	if c.Separator != "." {
+// 		t.Fail()
+// 	}
+// 	if c.lock == nil {
+// 		t.Fail()
+// 	}
+// 	if c.m == nil || c.loaders == nil {
+// 		t.Fail()
+// 	}
+// }
 
-func TestConfif_AddLoader(t *testing.T) {
-	c := New()
-	c.AddLoader(intLoader(0))
-	if c.loaders[0] != intLoader(0) {
-		t.Fail()
-	}
-}
+// func TestConfif_AddLoader(t *testing.T) {
+// 	c := New()
+// 	c.AddLoader(intLoader(0))
+// 	if c.loaders[0] != intLoader(0) {
+// 		t.Fail()
+// 	}
+// }
 
-func TestConfig_LoadAll(t *testing.T) {
-	c := New()
-	c.AddLoader(intLoader(1))
-	c.AddLoader(intLoader(2))
-	c.LoadAll()
+// func TestConfig_LoadAll(t *testing.T) {
+// 	c := New()
+// 	c.AddLoader(intLoader(1))
+// 	c.AddLoader(intLoader(2))
+// 	c.LoadAll()
 
-	if v, ok := c.GetOk("1"); v != intLoader(1) || !ok {
-		t.Fail()
-	}
-	if v, ok := c.GetOk("2"); v != intLoader(2) || !ok {
-		t.Fail()
-	}
-}
+// 	if v, ok := c.GetOk("1"); v != intLoader(1) || !ok {
+// 		t.Fail()
+// 	}
+// 	if v, ok := c.GetOk("2"); v != intLoader(2) || !ok {
+// 		t.Fail()
+// 	}
+// }
 
 type intLoader int
 
