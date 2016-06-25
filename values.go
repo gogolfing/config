@@ -23,6 +23,12 @@ func (v *Values) Put(key Key, value interface{}) bool {
 	return v.root.put(key, value)
 }
 
+func (v *Values) EachKeyValue(visitor func(key Key, value interface{}) bool) {
+	v.lock.RLock()
+	defer v.lock.RUnlock()
+	v.root.eachKeyValue(nil, visitor)
+}
+
 type node struct {
 	value    interface{}
 	set      bool
@@ -62,15 +68,6 @@ func (n *node) put(key Key, value interface{}) bool {
 	return child.put(remainingKey, value) || changed
 }
 
-func (n *node) putLastKeyPart(keyPart string, child *node, value interface{}) bool {
-	_, ok := value.(*Values)
-	if ok {
-		fmt.Println("************************************* need to implement putting values")
-		return true
-	}
-	return child.setValue(value)
-}
-
 func (n *node) getChild(key string) (*node, bool) {
 	changed := false
 	if n.set {
@@ -91,8 +88,9 @@ func (n *node) getChild(key string) (*node, bool) {
 }
 
 func (n *node) setValue(value interface{}) bool {
-	if _, ok := value.(*Values); ok {
-		fmt.Println("setValue() called with *Values ***********************************")
+	if values, ok := value.(*Values); ok {
+		// fmt.Println("setValue() called with *Values ***********************************")
+		return n.setValues(values)
 	}
 	changed := false
 	if n.set {
@@ -104,4 +102,23 @@ func (n *node) setValue(value interface{}) bool {
 	n.set = true
 	n.children = nil
 	return changed
+}
+
+func (n *node) setValues(values *Values) bool {
+	changed := false
+	n.eachKeyValue(nil, func(key Key, value interface{}) bool {
+		changed = n.put(key, value) || changed
+		return false
+	})
+	return changed
+}
+
+func (n *node) eachKeyValue(key Key, visitor func(key Key, value interface{}) bool) {
+	if n.set {
+		visitor(key, n.value)
+		return
+	}
+	for keyPart, childNode := range n.children {
+		childNode.eachKeyValue(append(append(Key(nil), key...), keyPart), visitor)
+	}
 }

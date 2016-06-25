@@ -4,8 +4,16 @@ import "strings"
 
 type Key []string
 
-func NewKey(source, sep string) Key {
+func NewKey(parts ...string) Key {
+	return Key(parts)
+}
+
+func NewKeySep(source, sep string) Key {
 	return Key(strings.Split(source, sep))
+}
+
+func (k Key) IsEmpty() bool {
+	return len(k) == 0
 }
 
 type KeyValue struct {

@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestNewKey(t *testing.T) {
+func TestNewKeySep(t *testing.T) {
 	tests := []struct {
 		value  string
 		sep    string
@@ -19,7 +19,7 @@ func TestNewKey(t *testing.T) {
 		{"one, two, three", ", ", []string{"one", "two", "three"}},
 	}
 	for _, test := range tests {
-		result := NewKey(test.value, test.sep)
+		result := NewKeySep(test.value, test.sep)
 		if result == nil {
 			t.Error("result cannot be nil")
 		}
@@ -32,14 +32,12 @@ func TestNewKey(t *testing.T) {
 	}
 }
 
+/*
 func TestNewKeyValue(t *testing.T) {
-	key := NewKey("key", ".")
+	key := NewKeySep("key", ".")
 	keyValue := NewKeyValue(key, "value")
 	if !reflect.DeepEqual(keyValue.Key, key) || keyValue.Value != "value" {
 		t.Fail()
 	}
 }
-
-func newKey(values ...string) Key {
-	return Key(values)
-}
+*/
