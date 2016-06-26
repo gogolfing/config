@@ -1,9 +1,6 @@
 package config
 
-import (
-	"fmt"
-	"sync"
-)
+import "sync"
 
 type Values struct {
 	lock *sync.RWMutex
@@ -29,14 +26,14 @@ func (v *Values) EachKeyValue(visitor func(key Key, value interface{}) bool) {
 	v.root.eachKeyValue(nil, visitor)
 }
 
+func (v *Values) IsEmpty() bool {
+	return v.root.isEmpty()
+}
+
 type node struct {
 	value    interface{}
 	set      bool
 	children map[string]*node
-}
-
-func (n *node) String() string {
-	return fmt.Sprintf("&%v", *n)
 }
 
 func newNodeValue(value interface{}) *node {
@@ -57,6 +54,10 @@ func newNode() *node {
 		set:      false,
 		children: nil,
 	}
+}
+
+func (n *node) isEmpty() bool {
+	return !n.set && len(n.children) == 0
 }
 
 func (n *node) put(key Key, value interface{}) bool {
@@ -105,6 +106,15 @@ func (n *node) setValue(value interface{}) bool {
 }
 
 func (n *node) setValues(values *Values) bool {
+	if values.IsEmpty() {
+		if n.isEmpty() {
+			return false
+		}
+		n.value = nil
+		n.set = false
+		n.children = nil
+		return true
+	}
 	changed := false
 	values.EachKeyValue(func(key Key, value interface{}) bool {
 		changed = n.put(key, value) || changed

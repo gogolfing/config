@@ -504,7 +504,6 @@ func TestValues_put(t *testing.T) {
 			},
 			nil,
 			NewValues(),
-			//this one fails
 			true,
 			&node{
 				value:    nil,
@@ -520,7 +519,6 @@ func TestValues_put(t *testing.T) {
 			},
 			nil,
 			NewValues(),
-			//this one fails
 			true,
 			&node{
 				value:    nil,
@@ -548,8 +546,93 @@ func TestValues_put(t *testing.T) {
 				},
 			},
 		},
-		//non empty *Values at non empty root
-		// this will be multiple cases
+		//empty *Value at deep "object"
+		{
+			[]KeyValue{
+				NewKeyValue(NewKey("a", "b"), "b"),
+				NewKeyValue(NewKey("a", "c"), "c"),
+			},
+			NewKey("a"),
+			NewValues(),
+			true,
+			&node{
+				value: nil,
+				set:   false,
+				children: map[string]*node{
+					"a": &node{
+						value:    nil,
+						set:      false,
+						children: nil,
+					},
+				},
+			},
+		},
+		//deep *Values overwrites single *Values
+		{
+			[]KeyValue{
+				NewKeyValue(NewKey("a"), "a"),
+			},
+			NewKey("a"),
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("b"), "b")
+				v.Put(NewKey("c"), "c")
+				return v
+			}(),
+			true,
+			&node{
+				value: nil,
+				set:   false,
+				children: map[string]*node{
+					"a": &node{
+						value: nil,
+						set:   false,
+						children: map[string]*node{
+							"b": newNodeValue("b"),
+							"c": newNodeValue("c"),
+						},
+					},
+				},
+			},
+		},
+		//deep *Values overwrites deep *Values
+		{
+			[]KeyValue{
+				NewKeyValue(NewKey("a", "b"), "b"),
+				NewKeyValue(NewKey("a", "c"), "c"),
+			},
+			NewKey("a"),
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("c"), "new c")
+				v.Put(NewKey("d"), "d")
+				v.Put(NewKey("e", "f"), "f")
+				return v
+			}(),
+			true,
+			&node{
+				value: nil,
+				set:   false,
+				children: map[string]*node{
+					"a": &node{
+						value: nil,
+						set:   false,
+						children: map[string]*node{
+							"b": newNodeValue("b"),
+							"c": newNodeValue("new c"),
+							"d": newNodeValue("d"),
+							"e": &node{
+								value: nil,
+								set:   false,
+								children: map[string]*node{
+									"f": newNodeValue("f"),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 	for index, test := range tests {
 		v := NewValues()
@@ -564,6 +647,12 @@ func TestValues_put(t *testing.T) {
 			t.Errorf("%v, v.Put(%v) root = %v WANT %v", index, test.key, v.root, test.root)
 		}
 	}
+}
+
+func TestValues_EachKeyValues(t *testing.T) {
+}
+
+func TestValues_IsEmpty(t *testing.T) {
 }
 
 func TestNewNodeValue(t *testing.T) {
