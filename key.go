@@ -16,6 +16,14 @@ func (k Key) IsEmpty() bool {
 	return len(k) == 0
 }
 
+func (k Key) Append(others ...Key) Key {
+	result := NewKey(k...)
+	for _, other := range others {
+		result = append(result, other...)
+	}
+	return result
+}
+
 type KeyValue struct {
 	Key
 	Value interface{}

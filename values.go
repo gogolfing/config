@@ -14,16 +14,27 @@ func NewValues() *Values {
 	}
 }
 
+func (v *Values) Merge(key Key, other *Values) bool {
+	v.lock.Lock()
+	defer v.lock.Unlock()
+	changed := false
+	other.EachKeyValue(func(otherKey Key, value interface{}) {
+		actualKey := key.Append(otherKey)
+		changed = v.Put(actualKey, value) || changed
+	})
+	return changed
+}
+
+func (v *Values) EachKeyValue(visitor func(key Key, value interface{})) {
+	v.lock.RLock()
+	defer v.lock.RUnlock()
+	v.root.eachKeyValue(nil, visitor)
+}
+
 func (v *Values) Put(key Key, value interface{}) bool {
 	v.lock.Lock()
 	defer v.lock.Unlock()
 	return v.root.put(key, value)
-}
-
-func (v *Values) EachKeyValue(visitor func(key Key, value interface{}) bool) {
-	v.lock.RLock()
-	defer v.lock.RUnlock()
-	v.root.eachKeyValue(nil, visitor)
 }
 
 func (v *Values) IsEmpty() bool {
@@ -90,7 +101,6 @@ func (n *node) getChild(key string) (*node, bool) {
 
 func (n *node) setValue(value interface{}) bool {
 	if values, ok := value.(*Values); ok {
-		// fmt.Println("setValue() called with *Values ***********************************")
 		return n.setValues(values)
 	}
 	changed := false
@@ -116,19 +126,18 @@ func (n *node) setValues(values *Values) bool {
 		return true
 	}
 	changed := false
-	values.EachKeyValue(func(key Key, value interface{}) bool {
+	values.EachKeyValue(func(key Key, value interface{}) {
 		changed = n.put(key, value) || changed
-		return false
 	})
 	return changed
 }
 
-func (n *node) eachKeyValue(key Key, visitor func(key Key, value interface{}) bool) {
+func (n *node) eachKeyValue(key Key, visitor func(key Key, value interface{})) {
 	if n.set {
 		visitor(key, n.value)
 		return
 	}
 	for keyPart, childNode := range n.children {
-		childNode.eachKeyValue(append(append(Key(nil), key...), keyPart), visitor)
+		childNode.eachKeyValue(append(NewKey(key...), keyPart), visitor)
 	}
 }

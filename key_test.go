@@ -32,12 +32,23 @@ func TestNewKeySep(t *testing.T) {
 	}
 }
 
-/*
-func TestNewKeyValue(t *testing.T) {
-	key := NewKeySep("key", ".")
-	keyValue := NewKeyValue(key, "value")
-	if !reflect.DeepEqual(keyValue.Key, key) || keyValue.Value != "value" {
-		t.Fail()
+func TestKey_Append(t *testing.T) {
+	tests := []struct {
+		first  Key
+		others []Key
+		result Key
+	}{
+		{Key(nil), []Key{}, Key(nil)},
+		{NewKey(), []Key{NewKey()}, NewKey()},
+		{Key(nil), []Key{NewKey("a")}, NewKey("a")},
+		{NewKey("a"), []Key{}, NewKey("a")},
+		{NewKey("a"), []Key{NewKey()}, NewKey("a")},
+		{NewKey("a"), []Key{NewKey("b", "c")}, NewKey("a", "b", "c")},
+	}
+	for _, test := range tests {
+		result := test.first.Append(test.others...)
+		if !reflect.DeepEqual(result, test.result) {
+			t.Errorf("%v.Append(%v) = %v WANT %v", test.first, test.others, result, test.result)
+		}
 	}
 }
-*/

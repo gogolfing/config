@@ -2,6 +2,7 @@ package config
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -13,7 +14,124 @@ func TestNewValues(t *testing.T) {
 	testNode(t, v.root, nil, false, true)
 }
 
-func TestValues_put(t *testing.T) {
+func TestValues_Merge(t *testing.T) {
+	//merging single value into single value
+	//merging single value into non single value
+	//merging non single value into single value
+	//merging non single value into non single value
+	//merging not at root for all above
+
+	tests := []struct {
+		values  *Values
+		toMerge *Values
+		mergeAt Key
+		changed bool
+		result  *Values
+	}{
+		//merging empty into empty
+		{
+			NewValues(),
+			NewValues(),
+			nil,
+			false,
+			NewValues(),
+		},
+		//merging empty into non empty
+		{
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a"), "a")
+				return v
+			}(),
+			NewValues(),
+			nil,
+			false,
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a"), "a")
+				return v
+			}(),
+		},
+		//merging non empty into empty
+		{
+			NewValues(),
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a"), "a")
+				return v
+			}(),
+			nil,
+			true,
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a"), "a")
+				return v
+			}(),
+		},
+	}
+	for index, test := range tests {
+		changed := test.values.Merge(test.mergeAt, test.toMerge)
+		if changed != test.changed {
+			t.Errorf("%v, *Values.Merge() changed = %v WANT %v", index, changed, test.changed)
+		}
+		if !reflect.DeepEqual(test.values, test.result) {
+			t.Errorf("%v, *Values.Merge() = %v WANT %v", index, test.values, test.result)
+		}
+	}
+}
+
+func TestValues_EachKeyValue(t *testing.T) {
+	tests := []struct {
+		values *Values
+		result map[string]interface{}
+	}{
+		//empty values should have empty result
+		{
+			func() *Values {
+				v := NewValues()
+				return v
+			}(),
+			map[string]interface{}{},
+		},
+		//single value should have single result with empty string key as a result of strings.Join()
+		{
+			func() *Values {
+				v := NewValues()
+				v.Put(nil, "something")
+				return v
+			}(),
+			map[string]interface{}{
+				"": "something",
+			},
+		},
+		//all nested values should have correct key, value pair
+		{
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a", "b"), 0)
+				v.Put(NewKey("a", "c"), 1)
+				v.Put(NewKey("d"), 2)
+				return v
+			}(),
+			map[string]interface{}{
+				"a.b": 0,
+				"a.c": 1,
+				"d":   2,
+			},
+		},
+	}
+	for _, test := range tests {
+		result := map[string]interface{}{}
+		test.values.EachKeyValue(func(key Key, value interface{}) {
+			result[strings.Join(key, ".")] = value
+		})
+		if !reflect.DeepEqual(result, test.result) {
+			t.Errorf("%v, *Values.EachKeyValue() = %v WANT %v")
+		}
+	}
+}
+
+func TestValues_Put(t *testing.T) {
 	tests := []struct {
 		before  []KeyValue
 		key     Key
@@ -649,10 +767,38 @@ func TestValues_put(t *testing.T) {
 	}
 }
 
-func TestValues_EachKeyValues(t *testing.T) {
-}
-
 func TestValues_IsEmpty(t *testing.T) {
+	tests := []struct {
+		values  *Values
+		isEmpty bool
+	}{
+		{
+			NewValues(),
+			true,
+		},
+		{
+			func() *Values {
+				v := NewValues()
+				v.Put(nil, "something")
+				return v
+			}(),
+			false,
+		},
+		{
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a"), "a")
+				return v
+			}(),
+			false,
+		},
+	}
+	for index, test := range tests {
+		isEmpty := test.values.IsEmpty()
+		if isEmpty != test.isEmpty {
+			t.Errorf("%v, *Values.IsEmpty() = %v WANT %v", index, isEmpty, test.isEmpty)
+		}
+	}
 }
 
 func TestNewNodeValue(t *testing.T) {
