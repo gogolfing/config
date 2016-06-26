@@ -15,10 +15,10 @@ func TestNewValues(t *testing.T) {
 }
 
 func TestValues_Merge(t *testing.T) {
-	//merging single value into single value
 	//merging single value into non single value
 	//merging non single value into single value
-	//merging non single value into non single value
+	//merging non single value into non single value with no change
+	//merging non single value into non single value with change
 	//merging not at root for all above
 
 	tests := []struct {
@@ -68,6 +68,9 @@ func TestValues_Merge(t *testing.T) {
 				return v
 			}(),
 		},
+		//merging single value into single value with no change
+		//merging single value into single value with change
+		{},
 	}
 	for index, test := range tests {
 		changed := test.values.Merge(test.mergeAt, test.toMerge)

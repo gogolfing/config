@@ -20,7 +20,7 @@ func (v *Values) Merge(key Key, other *Values) bool {
 	changed := false
 	other.EachKeyValue(func(otherKey Key, value interface{}) {
 		actualKey := key.Append(otherKey)
-		changed = v.Put(actualKey, value) || changed
+		changed = v.put(actualKey, value) || changed
 	})
 	return changed
 }
@@ -34,6 +34,10 @@ func (v *Values) EachKeyValue(visitor func(key Key, value interface{})) {
 func (v *Values) Put(key Key, value interface{}) bool {
 	v.lock.Lock()
 	defer v.lock.Unlock()
+	return v.put(key, value)
+}
+
+func (v *Values) put(key Key, value interface{}) bool {
 	return v.root.put(key, value)
 }
 
