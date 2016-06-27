@@ -15,12 +15,6 @@ func TestNewValues(t *testing.T) {
 }
 
 func TestValues_Merge(t *testing.T) {
-	//merging single value into non single value
-	//merging non single value into single value
-	//merging non single value into non single value with no change
-	//merging non single value into non single value with change
-	//merging not at root for all above
-
 	tests := []struct {
 		values  *Values
 		toMerge *Values
@@ -69,8 +63,137 @@ func TestValues_Merge(t *testing.T) {
 			}(),
 		},
 		//merging single value into single value with no change
+		{
+			func() *Values {
+				v := NewValues()
+				v.Put(nil, "a")
+				return v
+			}(),
+			func() *Values {
+				v := NewValues()
+				v.Put(nil, "a")
+				return v
+			}(),
+			nil,
+			false,
+			func() *Values {
+				v := NewValues()
+				v.Put(nil, "a")
+				return v
+			}(),
+		},
 		//merging single value into single value with change
-		// {},
+		{
+			func() *Values {
+				v := NewValues()
+				v.Put(nil, "a")
+				return v
+			}(),
+			func() *Values {
+				v := NewValues()
+				v.Put(nil, "b")
+				return v
+			}(),
+			nil,
+			true,
+			func() *Values {
+				v := NewValues()
+				v.Put(nil, "b")
+				return v
+			}(),
+		},
+		//merging single value into non single value
+		{
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a"), "a")
+				v.Put(NewKey("b"), "b")
+				return v
+			}(),
+			func() *Values {
+				v := NewValues()
+				v.Put(nil, "c")
+				return v
+			}(),
+			nil,
+			true,
+			func() *Values {
+				v := NewValues()
+				v.Put(nil, "c")
+				return v
+			}(),
+		},
+		//merging non single value into single value
+		{
+			func() *Values {
+				v := NewValues()
+				v.Put(nil, "a")
+				return v
+			}(),
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a"), "a")
+				v.Put(NewKey("b"), "b")
+				return v
+			}(),
+			nil,
+			true,
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a"), "a")
+				v.Put(NewKey("b"), "b")
+				return v
+			}(),
+		},
+		//merging non single value into non single value with no change
+		{
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a"), "a")
+				v.Put(NewKey("b"), "b")
+				return v
+			}(),
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a"), "a")
+				v.Put(NewKey("b"), "b")
+				return v
+			}(),
+			nil,
+			false,
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a"), "a")
+				v.Put(NewKey("b"), "b")
+				return v
+			}(),
+		},
+		//merging non single value into non single value with change
+		{
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a"), "a")
+				v.Put(NewKey("b"), "b")
+				return v
+			}(),
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("b"), "new b")
+				v.Put(NewKey("c"), "c")
+				v.Put(NewKey("d"), NewValues())
+				return v
+			}(),
+			nil,
+			true,
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a"), "a")
+				v.Put(NewKey("b"), "new b")
+				v.Put(NewKey("c"), "c")
+				return v
+			}(),
+		},
+		//merging not at root for all above
 	}
 	for index, test := range tests {
 		changed := test.values.Merge(test.mergeAt, test.toMerge)
