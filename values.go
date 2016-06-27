@@ -42,6 +42,8 @@ func (v *Values) put(key Key, value interface{}) bool {
 }
 
 func (v *Values) IsEmpty() bool {
+	v.lock.RLock()
+	defer v.lock.RUnlock()
 	return v.root.isEmpty()
 }
 
