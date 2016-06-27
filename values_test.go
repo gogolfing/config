@@ -70,7 +70,7 @@ func TestValues_Merge(t *testing.T) {
 		},
 		//merging single value into single value with no change
 		//merging single value into single value with change
-		{},
+		// {},
 	}
 	for index, test := range tests {
 		changed := test.values.Merge(test.mergeAt, test.toMerge)
