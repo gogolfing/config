@@ -13,7 +13,51 @@ func NewKeySep(source, sep string) Key {
 }
 
 func (k Key) IsEmpty() bool {
-	return len(k) == 0
+	return k.Len() == 0
+}
+
+func (k Key) Len() int {
+	return len(k)
+}
+
+func (k Key) Equals(other Key) bool {
+	if k.IsEmpty() && other.IsEmpty() {
+		return true
+	}
+	if len(k) != len(other) {
+		return false
+	}
+	for i, part := range k {
+		if part != other[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func (k Key) StartsWith(other Key) bool {
+	if other.Len() > k.Len() {
+		return false
+	}
+	for i, part := range other {
+		if k[i] != part {
+			return false
+		}
+	}
+	return true
+}
+
+func (k Key) EndsWith(other Key) bool {
+	if other.Len() > k.Len() {
+		return false
+	}
+	for i, _ := range other {
+		part := other[other.Len()-1-i]
+		if k[k.Len()-i] != part {
+			return false
+		}
+	}
+	return true
 }
 
 func (k Key) Append(others ...Key) Key {
@@ -24,64 +68,14 @@ func (k Key) Append(others ...Key) Key {
 	return result
 }
 
-type KeyValue struct {
-	Key
-	Value interface{}
+type KeyParser interface {
+	Parse(k string) Key
 }
 
-func NewKeyValue(key Key, value interface{}) KeyValue {
-	return KeyValue{
-		Key:   key,
-		Value: value,
-	}
+type SeparatorKeyParser string
+
+func (s SeparatorKeyParser) Parse(k string) Key {
+	return NewKey(strings.Split(k, string(s))...)
 }
 
-type Converter interface {
-	Convert(value interface{}) interface{}
-}
-
-type ConverterFunc func(interface{}) interface{}
-
-func (c ConverterFunc) Convert(value interface{}) interface{} {
-	return c(value)
-}
-
-var DefaultConverter Converter = ConverterFunc(Convert)
-
-func Convert(value interface{}) interface{} {
-	switch v := value.(type) {
-	case map[string]interface{}:
-		return ConvertBuiltinMap(v)
-	case []interface{}:
-		return ConvertSlice(v)
-	case KeyValue:
-		return ConvertKeyValues([]KeyValue{v})
-	case []KeyValue:
-		return ConvertKeyValues(v)
-	}
-	return value
-}
-
-func ConvertBuiltinMap(m map[string]interface{}) Map {
-	result := NewMap()
-	for key, value := range m {
-		result[key] = Convert(value)
-	}
-	return result
-}
-
-func ConvertSlice(slice []interface{}) []interface{} {
-	result := make([]interface{}, len(slice))
-	for i, v := range slice {
-		result[i] = Convert(v)
-	}
-	return result
-}
-
-func ConvertKeyValues(keyValues []KeyValue) Map {
-	result := NewMap()
-	for _, kv := range keyValues {
-		result.Put(kv.Key, Convert(kv.Value))
-	}
-	return result
-}
+const PeriodSeparatorKeyParser = SeparatorKeyParser(".")

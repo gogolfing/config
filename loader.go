@@ -1,10 +1,10 @@
 package config
 
-/*
 type Loader interface {
-	Load() (Map, error)
+	Load() (*Values, error)
 }
 
+/*
 type EnvLoader struct {
 	Prefix    string
 	Separator string

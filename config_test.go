@@ -1,9 +1,6 @@
 package config
 
-import (
-	"fmt"
-	"testing"
-)
+import "testing"
 
 // func TestNew(t *testing.T) {
 // 	c := New()
@@ -39,14 +36,6 @@ import (
 // 		t.Fail()
 // 	}
 // }
-
-type intLoader int
-
-func (i intLoader) Load() ([]KeyValue, error) {
-	return []KeyValue{
-		{Key: NewKey(fmt.Sprint(int(i)), ""), Value: i},
-	}, nil
-}
 
 func TestConfig_Get(t *testing.T) {
 	c := New()

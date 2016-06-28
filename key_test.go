@@ -32,6 +32,9 @@ func TestNewKeySep(t *testing.T) {
 	}
 }
 
+func TestKey_IsEmtpy(t *testing.T) {
+}
+
 func TestKey_Append(t *testing.T) {
 	tests := []struct {
 		first  Key

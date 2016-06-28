@@ -47,6 +47,17 @@ func (v *Values) IsEmpty() bool {
 	return v.root.isEmpty()
 }
 
+func (v *Values) Get(key Key) interface{} {
+	value, _ := v.GetOk(key)
+	return value
+}
+
+func (v *Values) GetOk(key Key) (interface{}, bool) {
+	v.lock.RLock()
+	defer v.lock.RUnlock()
+	return v.root.getOk(key)
+}
+
 type node struct {
 	value    interface{}
 	set      bool
@@ -78,7 +89,7 @@ func (n *node) isEmpty() bool {
 }
 
 func (n *node) put(key Key, value interface{}) bool {
-	if len(key) == 0 {
+	if key.IsEmpty() {
 		return n.setValue(value)
 	}
 	child, changed := n.getChild(key[0])
@@ -86,7 +97,7 @@ func (n *node) put(key Key, value interface{}) bool {
 	return child.put(remainingKey, value) || changed
 }
 
-func (n *node) getChild(key string) (*node, bool) {
+func (n *node) getChild(keyPart string) (*node, bool) {
 	changed := false
 	if n.set {
 		n.value = nil
@@ -96,10 +107,10 @@ func (n *node) getChild(key string) (*node, bool) {
 	if n.children == nil {
 		n.children = map[string]*node{}
 	}
-	child, ok := n.children[key]
+	child, ok := n.children[keyPart]
 	if !ok {
-		n.children[key] = newNode()
-		child = n.children[key]
+		n.children[keyPart] = newNode()
+		child = n.children[keyPart]
 		changed = true
 	}
 	return child, changed
@@ -136,6 +147,23 @@ func (n *node) setValues(values *Values) bool {
 		changed = n.put(key, value) || changed
 	})
 	return changed
+}
+
+func (n *node) getOk(key Key) (interface{}, bool) {
+	if key.IsEmpty() {
+		if n.set {
+			return n.value, true
+		}
+		return nil, false
+	}
+	if n.set {
+		return nil, false
+	}
+	child, ok := n.children[key[0]]
+	if !ok {
+		return nil, false
+	}
+	return child.getOk(key[1:])
 }
 
 func (n *node) eachKeyValue(key Key, visitor func(key Key, value interface{})) {
