@@ -14,6 +14,13 @@ func NewValues() *Values {
 	}
 }
 
+func newValues(root *node) *Values {
+	return &Values{
+		lock: &sync.RWMutex{},
+		root: root.clone(),
+	}
+}
+
 func (v *Values) Merge(key Key, other *Values) bool {
 	v.lock.Lock()
 	defer v.lock.Unlock()
@@ -55,7 +62,20 @@ func (v *Values) Get(key Key) interface{} {
 func (v *Values) GetOk(key Key) (interface{}, bool) {
 	v.lock.RLock()
 	defer v.lock.RUnlock()
-	return v.root.getOk(key)
+	value, ok := v.root.getValueOrNodeOk(key)
+	if !ok {
+		return nil, false
+	}
+	if node, ok := value.(*node); ok {
+		return newValues(node), true
+	}
+	return value, true
+}
+
+func (v *Values) Clone() *Values {
+	v.lock.RLock()
+	defer v.lock.RUnlock()
+	return newValues(v.root)
 }
 
 type node struct {
@@ -149,21 +169,37 @@ func (n *node) setValues(values *Values) bool {
 	return changed
 }
 
-func (n *node) getOk(key Key) (interface{}, bool) {
+func (n *node) getValueOrNodeOk(key Key) (interface{}, bool) {
 	if key.IsEmpty() {
 		if n.set {
 			return n.value, true
 		}
-		return nil, false
-	}
-	if n.set {
-		return nil, false
+		return n, true
 	}
 	child, ok := n.children[key[0]]
 	if !ok {
 		return nil, false
 	}
-	return child.getOk(key[1:])
+	return child.getValueOrNodeOk(key[1:])
+}
+
+func (n *node) clone() *node {
+	return &node{
+		value:    n.value,
+		set:      n.set,
+		children: n.cloneChildren(),
+	}
+}
+
+func (n *node) cloneChildren() map[string]*node {
+	if n.children == nil {
+		return nil
+	}
+	result := map[string]*node{}
+	for key, child := range n.children {
+		result[key] = child.clone()
+	}
+	return result
 }
 
 func (n *node) eachKeyValue(key Key, visitor func(key Key, value interface{})) {

@@ -1,7 +1,5 @@
 package config
 
-import "testing"
-
 // func TestNew(t *testing.T) {
 // 	c := New()
 // 	if c.Separator != "." {
@@ -37,6 +35,7 @@ import "testing"
 // 	}
 // }
 
+/*
 func TestConfig_Get(t *testing.T) {
 	c := New()
 	c.Put("hello", "world")
@@ -233,6 +232,7 @@ func TestConfig_GetStringOk(t *testing.T) {
 		t.Fail()
 	}
 }
+*/
 
 /*
 func TestConfig_GetOk(t *testing.T) {
@@ -272,6 +272,7 @@ func TestConfig_GetOk(t *testing.T) {
 }
 */
 
+/*
 func TestConfig_GetKeyOk_returnsNilForEmptyKeys(t *testing.T) {
 	c := New()
 	if v, ok := c.GetKeyOk(nil); v != nil || ok {
@@ -298,6 +299,7 @@ func TestConfig_Put_unchanged(t *testing.T) {
 		t.Fail()
 	}
 }
+*/
 
 /*
 func TestConfig_Put_overwrite(t *testing.T) {
@@ -327,6 +329,7 @@ func TestConfig_Put_underwrite(t *testing.T) {
 }
 */
 
+/*
 func TestConfig_PutKey_emptyKey(t *testing.T) {
 	c := New()
 	changed := c.PutKey(nil, "")
@@ -339,3 +342,4 @@ func TestConfig_PutKey_emptyKey(t *testing.T) {
 		t.Fail()
 	}
 }
+*/

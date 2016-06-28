@@ -6,6 +6,15 @@ import (
 	"testing"
 )
 
+type KeyValue struct {
+	Key   Key
+	Value interface{}
+}
+
+func NewKeyValue(key Key, value interface{}) KeyValue {
+	return KeyValue{key, value}
+}
+
 func TestNewValues(t *testing.T) {
 	v := NewValues()
 	if v.lock == nil || v.root == nil {
@@ -1101,6 +1110,113 @@ func TestValues_IsEmpty(t *testing.T) {
 		isEmpty := test.values.IsEmpty()
 		if isEmpty != test.isEmpty {
 			t.Errorf("%v, *Values.IsEmpty() = %v WANT %v", index, isEmpty, test.isEmpty)
+		}
+	}
+}
+
+func TestValues_Get(t *testing.T) {
+	values := NewValues()
+	values.Put(NewKey(""), "")
+	values.Put(NewKey("nil"), nil)
+	values.Put(NewKey("a"), "a")
+	values.Put(NewKey("b", "c"), "c")
+	tests := []struct {
+		key    Key
+		result interface{}
+	}{
+		{NewKey(), values},
+		{NewKey(""), ""},
+		{NewKey("nil"), nil},
+		{NewKey("a"), "a"},
+		{
+			NewKey("b"),
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("c"), "c")
+				return v
+			}(),
+		},
+		{NewKey("b", "c"), "c"},
+		{NewKey("d"), nil},
+	}
+	for _, test := range tests {
+		result := values.Get(test.key)
+		if !reflect.DeepEqual(result, test.result) {
+			t.Errorf("%v, reflect.DeepEqual(%v, %v) should be true", test.key, result, test.result)
+		}
+	}
+}
+
+func TestValues_GetOk(t *testing.T) {
+	values := NewValues()
+	values.Put(NewKey(""), "")
+	values.Put(NewKey("nil"), nil)
+	values.Put(NewKey("a"), "a")
+	values.Put(NewKey("b", "c"), "c")
+	tests := []struct {
+		key    Key
+		result interface{}
+		ok     bool
+	}{
+		{NewKey(), values, true},
+		{NewKey(""), "", true},
+		{NewKey("nil"), nil, true},
+		{NewKey("a"), "a", true},
+		{
+			NewKey("b"),
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("c"), "c")
+				return v
+			}(),
+			true,
+		},
+		{NewKey("b", "c"), "c", true},
+		{NewKey("d"), nil, false},
+	}
+	for _, test := range tests {
+		result, ok := values.GetOk(test.key)
+		if ok != test.ok {
+			t.Errorf("%v, ok = %v WANT %v", ok, test.ok)
+		}
+		if !reflect.DeepEqual(result, test.result) {
+			t.Errorf("%v, reflect.DeepEqual(%v, %v) should be true", test.key, result, test.result)
+		}
+	}
+}
+
+func TestValues_Clone(t *testing.T) {
+	tests := []struct {
+		values *Values
+	}{
+		{NewValues()},
+		{
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey(), "value at emtpy key")
+				return v
+			}(),
+		},
+		{
+			func() *Values {
+				valueValues := NewValues()
+				valueValues.Put(NewKey("a"), "a")
+
+				v := NewValues()
+				v.Put(NewKey(""), "")
+				v.Put(NewKey("nil"), nil)
+				v.Put(NewKey("one", "slice"), []string{"hello", "world"})
+				v.Put(NewKey("one", "int"), 1234)
+				v.Put(NewKey("one", "bool"), false)
+				v.Put(NewKey("one", "valueValues"), valueValues)
+				return v
+			}(),
+		},
+	}
+	for index, test := range tests {
+		clone := test.values.Clone()
+		if !reflect.DeepEqual(clone, test.values) {
+			t.Errorf("%v, reflect.DeepEqual(%v, %v) should be true", index, clone, test.values)
 		}
 	}
 }
