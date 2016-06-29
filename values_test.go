@@ -20,7 +20,7 @@ func TestNewValues(t *testing.T) {
 	if v.lock == nil || v.root == nil {
 		t.Fail()
 	}
-	testNode(t, v.root, nil, true)
+	testNode(t, v.root, nil, false)
 }
 
 func TestValues_Merge(t *testing.T) {
@@ -827,10 +827,7 @@ func TestValues_Put(t *testing.T) {
 			nil,
 			NewValues(),
 			false,
-			&node{
-				value:    nil,
-				children: nil,
-			},
+			newNode(),
 		},
 		//single value *Values at empty root
 		{
@@ -1025,6 +1022,16 @@ func TestValues_Put(t *testing.T) {
 	}
 }
 
+func areChildrenEqual(a, b map[string]*node) bool {
+	if a == nil || b == nil {
+		return (a == nil) == (b == nil)
+	}
+	if len(a) == 0 && len(b) == 0 {
+		return true
+	}
+	return reflect.DeepEqual(a, b)
+}
+
 func TestValues_IsEmpty(t *testing.T) {
 	tests := []struct {
 		values  *Values
@@ -1181,22 +1188,9 @@ func TestNewNodeValue(t *testing.T) {
 	}
 }
 
-func TestNewNodeChildren(t *testing.T) {
-	tests := []struct {
-		children map[string]*node
-	}{
-		{nil},
-		{map[string]*node{}},
-	}
-	for _, test := range tests {
-		n := newNodeChildren(test.children)
-		testNode(t, n, nil, test.children == nil)
-	}
-}
-
 func TestNewNode(t *testing.T) {
 	n := newNode()
-	if n.value != nil || n.children != nil {
+	if n.value != nil || n.children == nil || len(n.children) != 0 {
 		t.Fail()
 	}
 }
@@ -1208,12 +1202,7 @@ func testNode(t *testing.T, n *node, value interface{}, childrenNil bool) {
 	if !reflect.DeepEqual(n.value, value) {
 		t.Error("n.value should reflect.DeepEqual() value", n.value, value)
 	}
-	/*
-		if n.isSet() != set {
-			t.Error("n.isSet() should equal set", n.isSet(), set)
-		}
-	*/
 	if n.children == nil != childrenNil {
-		t.Error("n.children should have nil value %v, got %v", childrenNil, n.children == nil)
+		t.Errorf("n.children should have nil value %v, got %v", childrenNil, n.children == nil)
 	}
 }

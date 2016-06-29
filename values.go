@@ -17,7 +17,7 @@ func NewValues() *Values {
 func newValues(root *node) *Values {
 	return &Values{
 		lock: &sync.RWMutex{},
-		root: root.clone(),
+		root: root,
 	}
 }
 
@@ -48,11 +48,11 @@ func (v *Values) put(key Key, value interface{}) bool {
 	return v.root.put(key, value)
 }
 
-// func (v *Values) IsEmpty() bool {
-// 	v.lock.RLock()
-// 	defer v.lock.RUnlock()
-// 	return v.root.isEmpty()
-// }
+func (v *Values) IsEmpty() bool {
+	v.lock.RLock()
+	defer v.lock.RUnlock()
+	return v.root.isEmpty()
+}
 
 func (v *Values) Get(key Key) interface{} {
 	value, _ := v.GetOk(key)
@@ -67,7 +67,7 @@ func (v *Values) GetOk(key Key) (interface{}, bool) {
 		return nil, false
 	}
 	if node, ok := value.(*node); ok {
-		return newValues(node), true
+		return newValues(node.clone()), true
 	}
 	return value, true
 }
@@ -86,25 +86,20 @@ type node struct {
 func newNodeValue(value interface{}) *node {
 	n := newNode()
 	n.value = value
-	return n
-}
-
-func newNodeChildren(children map[string]*node) *node {
-	n := newNode()
-	n.children = children
+	n.children = nil
 	return n
 }
 
 func newNode() *node {
 	return &node{
 		value:    nil,
-		children: nil,
+		children: map[string]*node{},
 	}
 }
 
-// func (n *node) isEmpty() bool {
-// 	return !n.isSet() && len(n.children) == 0
-// }
+func (n *node) isEmpty() bool {
+	return !n.isSet() && len(n.children) == 0
+}
 
 func (n *node) isSet() bool {
 	return n.children == nil
