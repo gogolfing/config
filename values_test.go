@@ -20,7 +20,7 @@ func TestNewValues(t *testing.T) {
 	if v.lock == nil || v.root == nil {
 		t.Fail()
 	}
-	testNode(t, v.root, nil, false, true)
+	testNode(t, v.root, nil, true)
 }
 
 func TestValues_Merge(t *testing.T) {
@@ -460,7 +460,6 @@ func TestValues_Put(t *testing.T) {
 			true,
 			&node{
 				value:    nil,
-				set:      true,
 				children: nil,
 			},
 		},
@@ -474,7 +473,6 @@ func TestValues_Put(t *testing.T) {
 			false,
 			&node{
 				value:    nil,
-				set:      true,
 				children: nil,
 			},
 		},
@@ -486,7 +484,6 @@ func TestValues_Put(t *testing.T) {
 			true,
 			&node{
 				value:    nil,
-				set:      true,
 				children: nil,
 			},
 		},
@@ -500,7 +497,6 @@ func TestValues_Put(t *testing.T) {
 			false,
 			&node{
 				value:    nil,
-				set:      true,
 				children: nil,
 			},
 		},
@@ -512,7 +508,6 @@ func TestValues_Put(t *testing.T) {
 			true,
 			&node{
 				value:    true,
-				set:      true,
 				children: nil,
 			},
 		},
@@ -526,7 +521,6 @@ func TestValues_Put(t *testing.T) {
 			false,
 			&node{
 				value:    false,
-				set:      true,
 				children: nil,
 			},
 		},
@@ -538,7 +532,6 @@ func TestValues_Put(t *testing.T) {
 			true,
 			&node{
 				value:    true,
-				set:      true,
 				children: nil,
 			},
 		},
@@ -552,7 +545,6 @@ func TestValues_Put(t *testing.T) {
 			false,
 			&node{
 				value:    false,
-				set:      true,
 				children: nil,
 			},
 		},
@@ -564,11 +556,9 @@ func TestValues_Put(t *testing.T) {
 			true,
 			&node{
 				value: nil,
-				set:   false,
 				children: map[string]*node{
 					"hello": &node{
 						value:    nil,
-						set:      true,
 						children: nil,
 					},
 				},
@@ -584,11 +574,9 @@ func TestValues_Put(t *testing.T) {
 			false,
 			&node{
 				value: nil,
-				set:   false,
 				children: map[string]*node{
 					"hello": &node{
 						value:    nil,
-						set:      true,
 						children: nil,
 					},
 				},
@@ -602,11 +590,9 @@ func TestValues_Put(t *testing.T) {
 			true,
 			&node{
 				value: nil,
-				set:   false,
 				children: map[string]*node{
 					"hello": &node{
 						value:    2,
-						set:      true,
 						children: nil,
 					},
 				},
@@ -622,11 +608,9 @@ func TestValues_Put(t *testing.T) {
 			false,
 			&node{
 				value: nil,
-				set:   false,
 				children: map[string]*node{
 					"hello": &node{
 						value:    2,
-						set:      true,
 						children: nil,
 					},
 				},
@@ -642,11 +626,9 @@ func TestValues_Put(t *testing.T) {
 			true,
 			&node{
 				value: nil,
-				set:   false,
 				children: map[string]*node{
 					"hello": &node{
 						value:    "two",
-						set:      true,
 						children: nil,
 					},
 				},
@@ -660,15 +642,12 @@ func TestValues_Put(t *testing.T) {
 			true,
 			&node{
 				value: nil,
-				set:   false,
 				children: map[string]*node{
 					"hello": &node{
 						value: nil,
-						set:   false,
 						children: map[string]*node{
 							"world": &node{
 								value:    nil,
-								set:      true,
 								children: nil,
 							},
 						},
@@ -686,15 +665,12 @@ func TestValues_Put(t *testing.T) {
 			false,
 			&node{
 				value: nil,
-				set:   false,
 				children: map[string]*node{
 					"hello": &node{
 						value: nil,
-						set:   false,
 						children: map[string]*node{
 							"world": &node{
 								value:    nil,
-								set:      true,
 								children: nil,
 							},
 						},
@@ -710,15 +686,12 @@ func TestValues_Put(t *testing.T) {
 			true,
 			&node{
 				value: nil,
-				set:   false,
 				children: map[string]*node{
 					"hello": &node{
 						value: nil,
-						set:   false,
 						children: map[string]*node{
 							"world": &node{
 								value:    "something",
-								set:      true,
 								children: nil,
 							},
 						},
@@ -736,15 +709,12 @@ func TestValues_Put(t *testing.T) {
 			false,
 			&node{
 				value: nil,
-				set:   false,
 				children: map[string]*node{
 					"hello": &node{
 						value: nil,
-						set:   false,
 						children: map[string]*node{
 							"world": &node{
 								value:    "something",
-								set:      true,
 								children: nil,
 							},
 						},
@@ -762,15 +732,12 @@ func TestValues_Put(t *testing.T) {
 			true,
 			&node{
 				value: nil,
-				set:   false,
 				children: map[string]*node{
 					"a": &node{
 						value: nil,
-						set:   false,
 						children: map[string]*node{
 							"b": &node{
 								value:    "b",
-								set:      true,
 								children: nil,
 							},
 						},
@@ -788,7 +755,6 @@ func TestValues_Put(t *testing.T) {
 			true,
 			&node{
 				value: nil,
-				set:   false,
 				children: map[string]*node{
 					"a": newNodeValue("a"),
 					"b": newNodeValue("b"),
@@ -806,7 +772,6 @@ func TestValues_Put(t *testing.T) {
 			false,
 			&node{
 				value: nil,
-				set:   false,
 				children: map[string]*node{
 					"a": newNodeValue("a"),
 					"b": newNodeValue("b"),
@@ -824,11 +789,9 @@ func TestValues_Put(t *testing.T) {
 			true,
 			&node{
 				value: nil,
-				set:   false,
 				children: map[string]*node{
 					"a": &node{
 						value:    "a",
-						set:      true,
 						children: nil,
 					},
 				},
@@ -846,16 +809,13 @@ func TestValues_Put(t *testing.T) {
 			true,
 			&node{
 				value: nil,
-				set:   false,
 				children: map[string]*node{
 					"else": &node{
 						value:    "else",
-						set:      true,
 						children: nil,
 					},
 					"a": &node{
 						value:    "a",
-						set:      true,
 						children: nil,
 					},
 				},
@@ -869,7 +829,6 @@ func TestValues_Put(t *testing.T) {
 			false,
 			&node{
 				value:    nil,
-				set:      false,
 				children: nil,
 			},
 		},
@@ -881,7 +840,6 @@ func TestValues_Put(t *testing.T) {
 			true,
 			&node{
 				value:    "value",
-				set:      true,
 				children: nil,
 			},
 		},
@@ -896,7 +854,6 @@ func TestValues_Put(t *testing.T) {
 			true,
 			&node{
 				value:    "value",
-				set:      true,
 				children: nil,
 			},
 		},
@@ -910,7 +867,6 @@ func TestValues_Put(t *testing.T) {
 			false,
 			&node{
 				value:    "value",
-				set:      true,
 				children: nil,
 			},
 		},
@@ -924,7 +880,6 @@ func TestValues_Put(t *testing.T) {
 			true,
 			&node{
 				value:    "value",
-				set:      true,
 				children: nil,
 			},
 		},
@@ -938,7 +893,6 @@ func TestValues_Put(t *testing.T) {
 			true,
 			&node{
 				value:    nil,
-				set:      false,
 				children: nil,
 			},
 		},
@@ -953,7 +907,6 @@ func TestValues_Put(t *testing.T) {
 			true,
 			&node{
 				value:    nil,
-				set:      false,
 				children: nil,
 			},
 		},
@@ -970,7 +923,6 @@ func TestValues_Put(t *testing.T) {
 			true,
 			&node{
 				value: nil,
-				set:   false,
 				children: map[string]*node{
 					"a": newNodeValue("a"),
 					"b": newNodeValue("b"),
@@ -988,11 +940,9 @@ func TestValues_Put(t *testing.T) {
 			true,
 			&node{
 				value: nil,
-				set:   false,
 				children: map[string]*node{
 					"a": &node{
 						value:    nil,
-						set:      false,
 						children: nil,
 					},
 				},
@@ -1013,11 +963,9 @@ func TestValues_Put(t *testing.T) {
 			true,
 			&node{
 				value: nil,
-				set:   false,
 				children: map[string]*node{
 					"a": &node{
 						value: nil,
-						set:   false,
 						children: map[string]*node{
 							"b": newNodeValue("b"),
 							"c": newNodeValue("c"),
@@ -1043,18 +991,15 @@ func TestValues_Put(t *testing.T) {
 			true,
 			&node{
 				value: nil,
-				set:   false,
 				children: map[string]*node{
 					"a": &node{
 						value: nil,
-						set:   false,
 						children: map[string]*node{
 							"b": newNodeValue("b"),
 							"c": newNodeValue("new c"),
 							"d": newNodeValue("d"),
 							"e": &node{
 								value: nil,
-								set:   false,
 								children: map[string]*node{
 									"f": newNodeValue("f"),
 								},
@@ -1232,7 +1177,7 @@ func TestNewNodeValue(t *testing.T) {
 	}
 	for _, test := range tests {
 		n := newNodeValue(test.value)
-		testNode(t, n, test.value, true, true)
+		testNode(t, n, test.value, true)
 	}
 }
 
@@ -1245,27 +1190,29 @@ func TestNewNodeChildren(t *testing.T) {
 	}
 	for _, test := range tests {
 		n := newNodeChildren(test.children)
-		testNode(t, n, nil, false, test.children == nil)
+		testNode(t, n, nil, test.children == nil)
 	}
 }
 
 func TestNewNode(t *testing.T) {
 	n := newNode()
-	if n.value != nil || n.set != false || n.children != nil {
+	if n.value != nil || n.children != nil {
 		t.Fail()
 	}
 }
 
-func testNode(t *testing.T, n *node, value interface{}, set, childrenNil bool) {
+func testNode(t *testing.T, n *node, value interface{}, childrenNil bool) {
 	if n == nil {
 		t.Error("*node should not be nil")
 	}
 	if !reflect.DeepEqual(n.value, value) {
 		t.Error("n.value should reflect.DeepEqual() value", n.value, value)
 	}
-	if n.set != set {
-		t.Error("n.set should equal set", n.set, set)
-	}
+	/*
+		if n.isSet() != set {
+			t.Error("n.isSet() should equal set", n.isSet(), set)
+		}
+	*/
 	if n.children == nil != childrenNil {
 		t.Error("n.children should have nil value %v, got %v", childrenNil, n.children == nil)
 	}

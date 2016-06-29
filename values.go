@@ -48,11 +48,11 @@ func (v *Values) put(key Key, value interface{}) bool {
 	return v.root.put(key, value)
 }
 
-func (v *Values) IsEmpty() bool {
-	v.lock.RLock()
-	defer v.lock.RUnlock()
-	return v.root.isEmpty()
-}
+// func (v *Values) IsEmpty() bool {
+// 	v.lock.RLock()
+// 	defer v.lock.RUnlock()
+// 	return v.root.isEmpty()
+// }
 
 func (v *Values) Get(key Key) interface{} {
 	value, _ := v.GetOk(key)
@@ -80,13 +80,12 @@ func (v *Values) Clone() *Values {
 
 type node struct {
 	value    interface{}
-	set      bool
 	children map[string]*node
 }
 
 func newNodeValue(value interface{}) *node {
 	n := newNode()
-	n.value, n.set = value, true
+	n.value = value
 	return n
 }
 
@@ -99,13 +98,16 @@ func newNodeChildren(children map[string]*node) *node {
 func newNode() *node {
 	return &node{
 		value:    nil,
-		set:      false,
 		children: nil,
 	}
 }
 
-func (n *node) isEmpty() bool {
-	return !n.set && len(n.children) == 0
+// func (n *node) isEmpty() bool {
+// 	return !n.isSet() && len(n.children) == 0
+// }
+
+func (n *node) isSet() bool {
+	return n.children == nil
 }
 
 func (n *node) put(key Key, value interface{}) bool {
@@ -119,12 +121,9 @@ func (n *node) put(key Key, value interface{}) bool {
 
 func (n *node) getChild(keyPart string) (*node, bool) {
 	changed := false
-	if n.set {
+	if n.isSet() {
 		n.value = nil
-		n.set = false
 		changed = true
-	}
-	if n.children == nil {
 		n.children = map[string]*node{}
 	}
 	child, ok := n.children[keyPart]
@@ -141,13 +140,12 @@ func (n *node) setValue(value interface{}) bool {
 		return n.setValues(values)
 	}
 	changed := false
-	if n.set {
+	if n.isSet() {
 		changed = value != n.value
 	} else {
 		changed = true
 	}
 	n.value = value
-	n.set = true
 	n.children = nil
 	return changed
 }
@@ -158,7 +156,6 @@ func (n *node) setValues(values *Values) bool {
 			return false
 		}
 		n.value = nil
-		n.set = false
 		n.children = nil
 		return true
 	}
@@ -171,7 +168,7 @@ func (n *node) setValues(values *Values) bool {
 
 func (n *node) getValueOrNodeOk(key Key) (interface{}, bool) {
 	if key.IsEmpty() {
-		if n.set {
+		if n.isSet() {
 			return n.value, true
 		}
 		return n, true
@@ -186,7 +183,6 @@ func (n *node) getValueOrNodeOk(key Key) (interface{}, bool) {
 func (n *node) clone() *node {
 	return &node{
 		value:    n.value,
-		set:      n.set,
 		children: n.cloneChildren(),
 	}
 }
@@ -203,7 +199,7 @@ func (n *node) cloneChildren() map[string]*node {
 }
 
 func (n *node) eachKeyValue(key Key, visitor func(key Key, value interface{})) {
-	if n.set {
+	if n.isSet() {
 		visitor(key, n.value)
 		return
 	}
