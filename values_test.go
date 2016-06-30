@@ -1057,6 +1057,14 @@ func TestValues_IsEmpty(t *testing.T) {
 			}(),
 			false,
 		},
+		{
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a", "b", "c"), "c")
+				return v
+			}(),
+			false,
+		},
 	}
 	for index, test := range tests {
 		isEmpty := test.values.IsEmpty()
