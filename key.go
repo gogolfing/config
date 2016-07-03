@@ -9,7 +9,7 @@ func NewKey(parts ...string) Key {
 }
 
 func NewKeySep(source, sep string) Key {
-	return Key(strings.Split(source, sep))
+	return NewKey(strings.Split(source, sep)...)
 }
 
 func (k Key) IsEmpty() bool {
@@ -53,7 +53,7 @@ func (k Key) EndsWith(other Key) bool {
 	}
 	for i, _ := range other {
 		part := other[other.Len()-1-i]
-		if k[k.Len()-i] != part {
+		if k[k.Len()-1-i] != part {
 			return false
 		}
 	}
