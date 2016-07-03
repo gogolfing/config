@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -288,6 +289,132 @@ func TestConfig_GetValuesOk(t *testing.T) {
 	if v, ok := c.GetValuesOk(""); v != nil || ok {
 		t.Fail()
 	}
+}
+
+func TestConfig_Get(t *testing.T) {
+	c := getFullConfig()
+	tests := getFullConfigTests()
+	for _, test := range tests {
+		keyString := strings.Join(test.key, string(c.KeyParser.(SeparatorKeyParser)))
+		value := c.Get(keyString)
+		if !reflect.DeepEqual(value, test.value) {
+			t.Errorf("c.Get(%v) = %v WANT %v", test.key, value, test.value)
+		}
+	}
+}
+
+func TestConfig_GetOk(t *testing.T) {
+	c := getFullConfig()
+	tests := getFullConfigTests()
+	for _, test := range tests {
+		keyString := strings.Join(test.key, string(c.KeyParser.(SeparatorKeyParser)))
+		value, ok := c.GetOk(keyString)
+		if !reflect.DeepEqual(value, test.value) || ok != test.ok {
+			t.Errorf("c.GetOk(%v) = %v, %v WANT %v, %v", test.key, value, ok, test.value, test.ok)
+		}
+	}
+}
+
+func TestConfig_GetKey(t *testing.T) {
+	c := getFullConfig()
+	tests := getFullConfigTests()
+	for _, test := range tests {
+		value := c.GetKey(test.key)
+		if !reflect.DeepEqual(value, test.value) {
+			t.Errorf("c.GetKey(%v) = %v WANT %v", test.key, value, test.value)
+		}
+	}
+}
+
+func TestConfig_GetKeyOk(t *testing.T) {
+	c := getFullConfig()
+	tests := getFullConfigTests()
+	for _, test := range tests {
+		value, ok := c.GetKeyOk(test.key)
+		if !reflect.DeepEqual(value, test.value) || ok != test.ok {
+			t.Errorf("c.GetKeyOk(%v) = %v, %v WANT %v, %v", test.key, value, ok, test.value, test.ok)
+		}
+	}
+}
+
+func getFullConfig() *Config {
+	c := New()
+
+	c.Put("bools.true", true)
+	c.Put("bools.false", false)
+	c.Put("bools.zero", false)
+
+	c.Put("ints.ten", int(10))
+	c.Put("ints.negativeOne", int(-1))
+	c.Put("ints.zero", int(0))
+
+	c.Put("int64s.ten", int64(10))
+	c.Put("int64s.negativeOne", int64(-1))
+	c.Put("int64s.zero", int64(0))
+
+	c.Put("strings.foo", "foo")
+	c.Put("strings.bar", "bar")
+	c.Put("strings.zero", "")
+
+	c.Put("float64s.ten", float64(10.0))
+	c.Put("float64s.negativeOne", float64(-1.0))
+	c.Put("float64s.zero", float64(0.0))
+
+	c.Put("values.one.a", "a")
+	c.Put("values.one.b", "b")
+
+	c.Put("values.two.a", "a")
+	c.Put("values.two.b", "b")
+
+	return c
+}
+
+func getFullConfigTests() []*getFullConfigTest {
+	abValues := NewValues()
+	abValues.Put(NewKey("a"), "a")
+	abValues.Put(NewKey("b"), "b")
+
+	return []*getFullConfigTest{
+		{NewKey("bools", "true"), true, true},
+		{NewKey("bools", "false"), false, true},
+		{NewKey("bools", "true"), true, true},
+		{NewKey("bools", ""), nil, false},
+
+		{NewKey("ints", "ten"), int(10), true},
+		{NewKey("ints", "negativeOne"), int(-1), true},
+		{NewKey("ints", "zero"), int(0), true},
+		{NewKey("ints", ""), nil, false},
+
+		{NewKey("int64s", "ten"), int64(10), true},
+		{NewKey("int64s", "negativeOne"), int64(-1), true},
+		{NewKey("int64s", "zero"), int64(0), true},
+		{NewKey("int64s", ""), nil, false},
+
+		{NewKey("strings", "foo"), "foo", true},
+		{NewKey("strings", "bar"), "bar", true},
+		{NewKey("strings", "zero"), "", true},
+		{NewKey("strings", ""), nil, false},
+
+		{NewKey("float64s", "ten"), float64(10.0), true},
+		{NewKey("float64s", "negativeOne"), float64(-1.0), true},
+		{NewKey("float64s", "zero"), float64(0.0), true},
+		{NewKey("float64s", ""), nil, false},
+
+		{NewKey("values", "one"), abValues, true},
+		{NewKey("values", "one", ""), nil, false},
+
+		{NewKey("values", "two"), abValues, true},
+		{NewKey("values", "two", ""), nil, false},
+
+		{NewKey("values", "one", "A"), nil, false},
+		{NewKey("values", "two", "B"), nil, false},
+	}
+}
+
+type getFullConfigTest struct {
+	key   Key
+	value interface{}
+	ok    bool
 }
 
 type intLoader int
