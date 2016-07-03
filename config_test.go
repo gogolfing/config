@@ -1,345 +1,305 @@
 package config
 
-// func TestNew(t *testing.T) {
-// 	c := New()
-// 	if c.Separator != "." {
-// 		t.Fail()
-// 	}
-// 	if c.lock == nil {
-// 		t.Fail()
-// 	}
-// 	if c.m == nil || c.loaders == nil {
-// 		t.Fail()
-// 	}
-// }
+import (
+	"fmt"
+	"math"
+	"reflect"
+	"testing"
+)
 
-// func TestConfif_AddLoader(t *testing.T) {
-// 	c := New()
-// 	c.AddLoader(intLoader(0))
-// 	if c.loaders[0] != intLoader(0) {
-// 		t.Fail()
-// 	}
-// }
-
-// func TestConfig_LoadAll(t *testing.T) {
-// 	c := New()
-// 	c.AddLoader(intLoader(1))
-// 	c.AddLoader(intLoader(2))
-// 	c.LoadAll()
-
-// 	if v, ok := c.GetOk("1"); v != intLoader(1) || !ok {
-// 		t.Fail()
-// 	}
-// 	if v, ok := c.GetOk("2"); v != intLoader(2) || !ok {
-// 		t.Fail()
-// 	}
-// }
-
-/*
-func TestConfig_Get(t *testing.T) {
+func TestNew(t *testing.T) {
 	c := New()
-	c.Put("hello", "world")
-	tests := []struct {
-		key   string
-		value interface{}
-	}{
-		{"hello", "world"},
-		{"anything else", nil},
-	}
-	for _, test := range tests {
-		value := c.Get(test.key)
-		if value != test.value {
-			t.Fail()
-		}
-	}
-}
-
-func TestConfig_GetBool(t *testing.T) {
-	c := New()
-	c.Put("yes", true)
-	if c.GetBool("yes") != true {
-		t.Fail()
-	}
-	if c.GetBool("no") == true {
+	if c.KeyParser == nil ||
+		c.values == nil ||
+		c.lock == nil ||
+		c.loaders == nil {
 		t.Fail()
 	}
 }
 
-func TestConfig_GetBoolOk(t *testing.T) {
+func TestConfig_AddLoader(t *testing.T) {
 	c := New()
-	c.Put("yes", true)
-	c.Put("false", false)
-	if v, ok := c.GetBoolOk("yes"); v != true || !ok {
-		t.Fail()
-	}
-	if v, ok := c.GetBoolOk("no"); v != false || ok {
-		t.Fail()
-	}
-	if v, ok := c.GetBoolOk("false"); v != false || !ok {
+
+	result := c.AddLoaders(intLoader(1)).AddLoaders(errorLoader("error"))
+
+	if result != c || !reflect.DeepEqual(c.loaders, []Loader{intLoader(1), errorLoader("error")}) {
 		t.Fail()
 	}
 }
 
-func TestConfig_GetFloat64(t *testing.T) {
+func TestConfig_LoadAll_success(t *testing.T) {
 	c := New()
-	c.Put("one", 1.0)
-	if c.GetFloat64("one") != 1.0 {
+	c.AddLoaders(intLoader(2))
+
+	_, err := c.LoadAll()
+	if err != nil {
 		t.Fail()
 	}
-	if c.GetFloat64("no") != 0 {
+
+	want := NewValues()
+	want.Put(NewKey("2"), 2)
+
+	if !reflect.DeepEqual(c.values, want) {
 		t.Fail()
 	}
 }
 
-func TestConfig_GetFloat64Ok(t *testing.T) {
+func TestConfig_LoadAll_error(t *testing.T) {
 	c := New()
-	c.Put("one", 1.0)
-	c.Put("zero", 0.0)
-	if v, ok := c.GetFloat64Ok("one"); v != 1.0 || !ok {
-		t.Fail()
-	}
-	if v, ok := c.GetFloat64Ok("no"); v != 0.0 || ok {
-		t.Fail()
-	}
-	if v, ok := c.GetFloat64Ok("zero"); v != 0.0 || !ok {
+	c.AddLoaders(intLoader(2), errorLoader("error loading"))
+
+	_, err := c.LoadAll()
+	if err.Error() != "error loading" {
 		t.Fail()
 	}
 }
 
 func TestConfig_GetInt(t *testing.T) {
 	c := New()
-	c.Put("one", 1)
-	if c.GetInt("one") != 1 {
+	c.Put("int", 8)
+	if c.GetInt("int") != 8 {
 		t.Fail()
 	}
-	if c.GetInt("no") != 0 {
+	if c.GetInt("") != 0 {
 		t.Fail()
 	}
 }
 
 func TestConfig_GetIntOk(t *testing.T) {
 	c := New()
-	c.Put("int8", int8(1))
-	c.Put("uint8", uint8(1))
-	c.Put("int16", int16(1))
-	c.Put("uint16", uint16(1))
-	c.Put("int32", int32(1))
-	c.Put("int", int(1))
 	c.Put("zero", 0)
-	if v, ok := c.GetIntOk("int8"); v != 1 || !ok {
-		t.Fail()
+	c.Put("zero string", "0")
+	c.Put("uint8", uint8(math.MaxUint8))
+	c.Put("int8", int8(math.MaxInt8))
+	c.Put("uint16", uint16(math.MaxUint16))
+	c.Put("int16", int16(math.MaxInt16))
+	c.Put("uint32", uint32(math.MaxUint32))
+	c.Put("int32", int32(math.MaxInt32))
+	c.Put("int", int(math.MaxInt32))
+	c.Put("uint64", uint64(math.MaxUint64))
+	c.Put("int64", int64(math.MaxInt64))
+	tests := []struct {
+		key    string
+		result int
+		ok     bool
+	}{
+		{"something", 0, false},
+		{"zero", 0, true},
+		{"zero string", 0, false},
+		{"uint8", math.MaxUint8, true},
+		{"int8", math.MaxInt8, true},
+		{"uint16", math.MaxUint16, true},
+		{"int16", math.MaxInt16, true},
+		{"uint32", math.MaxUint32, true},
+		{"int32", math.MaxInt32, true},
+		{"int", math.MaxInt32, true},
+		{"uint64", -1, true},
+		{"int64", math.MaxInt64, true},
 	}
-	if v, ok := c.GetIntOk("uint8"); v != 1 || !ok {
-		t.Fail()
-	}
-	if v, ok := c.GetIntOk("int16"); v != 1 || !ok {
-		t.Fail()
-	}
-	if v, ok := c.GetIntOk("uint16"); v != 1 || !ok {
-		t.Fail()
-	}
-	if v, ok := c.GetIntOk("int32"); v != 1 || !ok {
-		t.Fail()
-	}
-	if v, ok := c.GetIntOk("int"); v != 1 || !ok {
-		t.Fail()
-	}
-	if v, ok := c.GetIntOk("no"); v != 0 || ok {
-		t.Fail()
-	}
-	if v, ok := c.GetIntOk("zero"); v != 0 || !ok {
-		t.Fail()
+	for _, test := range tests {
+		result, ok := c.GetIntOk(test.key)
+		if result != test.result || ok != test.ok {
+			t.Errorf("c.GetIntOk(%v) = %v, %v WANT %v, %v", test.key, result, ok, test.result, test.ok)
+		}
 	}
 }
 
 func TestConfig_GetInt64(t *testing.T) {
 	c := New()
-	c.Put("one", int64(1))
-	if c.GetInt64("one") != int64(1) {
+	c.Put("int64", 8)
+	if c.GetInt64("int64") != int64(8) {
 		t.Fail()
 	}
-	if c.GetInt64("no") != int64(0) {
+	if c.GetInt64("") != int64(0) {
 		t.Fail()
 	}
 }
 
 func TestConfig_GetInt64Ok(t *testing.T) {
 	c := New()
-	c.Put("int8", int8(1))
-	c.Put("uint8", uint8(1))
-	c.Put("int16", int16(1))
-	c.Put("uint16", uint16(1))
-	c.Put("int32", int32(1))
-	c.Put("uint32", uint32(1))
-	c.Put("int", int(1))
-	c.Put("uint", uint(1))
-	c.Put("int64", int64(1))
 	c.Put("zero", int64(0))
-	if v, ok := c.GetInt64Ok("int8"); v != int64(1) || !ok {
+	c.Put("zero string", "0")
+	c.Put("uint8", uint8(math.MaxUint8))
+	c.Put("int8", int8(math.MaxInt8))
+	c.Put("uint16", uint16(math.MaxUint16))
+	c.Put("int16", int16(math.MaxInt16))
+	c.Put("uint32", uint32(math.MaxUint32))
+	c.Put("int32", int32(math.MaxInt32))
+	c.Put("int", int(math.MaxInt32))
+	c.Put("uint64", uint64(math.MaxUint64))
+	c.Put("int64", int64(math.MaxInt64))
+	tests := []struct {
+		key    string
+		result int64
+		ok     bool
+	}{
+		{"something", 0, false},
+		{"zero", 0, true},
+		{"zero string", 0, false},
+		{"uint8", math.MaxUint8, true},
+		{"int8", math.MaxInt8, true},
+		{"uint16", math.MaxUint16, true},
+		{"int16", math.MaxInt16, true},
+		{"uint32", math.MaxUint32, true},
+		{"int32", math.MaxInt32, true},
+		{"int", math.MaxInt32, true},
+		{"uint64", -1, true},
+		{"int64", math.MaxInt64, true},
+	}
+	for _, test := range tests {
+		result, ok := c.GetInt64Ok(test.key)
+		if result != test.result || ok != test.ok {
+			t.Errorf("c.GetInt64Ok(%v) = %v, %v WANT %v, %v", test.key, result, ok, test.result, test.ok)
+		}
+	}
+}
+
+func TestConfig_GetBool(t *testing.T) {
+	c := New()
+	c.Put("true", true)
+	c.Put("false", false)
+	if c.GetBool("true") != true {
 		t.Fail()
 	}
-	if v, ok := c.GetInt64Ok("uint8"); v != int64(1) || !ok {
+	if c.GetBool("false") != false {
 		t.Fail()
 	}
-	if v, ok := c.GetInt64Ok("int16"); v != int64(1) || !ok {
+	if c.GetBool("") != false {
 		t.Fail()
 	}
-	if v, ok := c.GetInt64Ok("uint16"); v != int64(1) || !ok {
+}
+
+func TestConfig_GetBoolOk(t *testing.T) {
+	c := New()
+	c.Put("true", true)
+	c.Put("false", false)
+	c.Put("true string", "true")
+	if b, ok := c.GetBoolOk("true"); b != true || !ok {
 		t.Fail()
 	}
-	if v, ok := c.GetInt64Ok("int32"); v != int64(1) || !ok {
+	if b, ok := c.GetBoolOk("false"); b != false || !ok {
 		t.Fail()
 	}
-	if v, ok := c.GetInt64Ok("uint32"); v != int64(1) || !ok {
-		t.Fail()
-	}
-	if v, ok := c.GetInt64Ok("int"); v != int64(1) || !ok {
-		t.Fail()
-	}
-	if v, ok := c.GetInt64Ok("uint"); v != int64(1) || !ok {
-		t.Fail()
-	}
-	if v, ok := c.GetInt64Ok("no"); v != int64(0) || ok {
-		t.Fail()
-	}
-	if v, ok := c.GetInt64Ok("zero"); v != int64(0) || !ok {
+	if b, ok := c.GetBoolOk("true string"); b != false || ok {
 		t.Fail()
 	}
 }
 
 func TestConfig_GetString(t *testing.T) {
 	c := New()
-	c.Put("yes", "yes")
-	if c.GetString("yes") != "yes" {
+	c.Put("a", "a")
+	if c.GetString("a") != "a" {
 		t.Fail()
 	}
-	if c.GetString("no") != "" {
+	if c.GetString("") != "" {
 		t.Fail()
 	}
 }
 
 func TestConfig_GetStringOk(t *testing.T) {
 	c := New()
-	c.Put("yes", "yes")
-	c.Put("zero", "zero")
-	if v, ok := c.GetStringOk("yes"); v != "yes" || !ok {
-		t.Fail()
-	}
-	if v, ok := c.GetStringOk("no"); v != "" || ok {
-		t.Fail()
-	}
-	if v, ok := c.GetStringOk("zero"); v != "zero" || !ok {
-		t.Fail()
-	}
-}
-*/
-
-/*
-func TestConfig_GetOk(t *testing.T) {
-	c := New()
+	c.Put("a", "a")
 	c.Put("empty", "")
-	c.Put("bool", false)
-	c.Put("one", "one")
-	c.Put("two.three", "three")
-	c.Put("four.five.six", "six")
-	c.Put("four.five.seven", 7)
-	tests := []struct {
-		key   string
-		value interface{}
-		ok    bool
-	}{
-		{"", nil, false},
-		{"empty", "", true},
-		{"bool", false, true},
-		{"one", "one", true},
-		{"One", nil, false},
-		{"ten", nil, false},
-		{"two", Map(map[string]interface{}{"three": "three"}), true},
-		{"four.five.six", "six", true},
-		{"four.five.seven", 7, true},
-		{"four.ten", nil, false},
-		{"four.five.ten", nil, false},
-		{"four.five.six.todeep", nil, false},
-		{"four.five.six.todeep.reallydeep", nil, false},
-		{"four.five", Map(map[string]interface{}{"six": "six", "seven": 7}), true},
+	if s, ok := c.GetStringOk("a"); s != "a" || !ok {
+		t.Fail()
 	}
-	for _, test := range tests {
-		value, ok := c.GetOk(test.key)
-		if !reflect.DeepEqual(value, test.value) || ok != test.ok {
-			t.Errorf("c.GetOk(%v) = %v, %v WANT %v, %v", test.key, value, ok, test.value, test.ok)
-		}
+	if s, ok := c.GetStringOk("empty"); s != "" || !ok {
+		t.Fail()
+	}
+	if s, ok := c.GetStringOk(""); s != "" || ok {
+		t.Fail()
 	}
 }
-*/
 
-/*
-func TestConfig_GetKeyOk_returnsNilForEmptyKeys(t *testing.T) {
+func TestConfig_GetFloat64(t *testing.T) {
 	c := New()
-	if v, ok := c.GetKeyOk(nil); v != nil || ok {
+	c.Put("float32", float32(32.0))
+	c.Put("float64", float64(64.0))
+	if c.GetFloat64("float32") != float64(32.0) {
 		t.Fail()
 	}
-	if v, ok := c.GetKeyOk(Key([]string{})); v != nil || ok {
+	if c.GetFloat64("float64") != float64(64.0) {
+		t.Fail()
+	}
+	if c.GetFloat64("") != float64(0) {
 		t.Fail()
 	}
 }
 
-func TestConfig_Put_changed(t *testing.T) {
+func TestConfig_GetFloat64Ok(t *testing.T) {
 	c := New()
-	changed := c.Put("", "new")
-	if !changed {
+	c.Put("float32", float32(32.0))
+	c.Put("float64", float64(64.0))
+	c.Put("empty", float64(0))
+	c.Put("float64 string", "1234.1234")
+	if f, ok := c.GetFloat64Ok("float32"); f != float64(32.0) || !ok {
+		t.Fail()
+	}
+	if f, ok := c.GetFloat64Ok("float64"); f != float64(64.0) || !ok {
+		t.Fail()
+	}
+	if f, ok := c.GetFloat64Ok("empty"); f != float64(0) || !ok {
+		t.Fail()
+	}
+	if f, ok := c.GetFloat64Ok("float64 string"); f != float64(0) || ok {
+		t.Fail()
+	}
+	if f, ok := c.GetFloat64Ok(""); f != float64(0) || ok {
+		t.Log("float64")
 		t.Fail()
 	}
 }
 
-func TestConfig_Put_unchanged(t *testing.T) {
+func TestConfig_GetValues(t *testing.T) {
 	c := New()
-	c.Put("one", 1)
-	changed := c.Put("one", 1)
-	if changed {
+	c.Put("a.b", "b")
+	c.Put("a.c", "c")
+
+	aValues := NewValues()
+	aValues.Put(NewKey("b"), "b")
+	aValues.Put(NewKey("c"), "c")
+	if !reflect.DeepEqual(c.GetValues("a"), aValues) {
+		t.Fail()
+	}
+
+	if c.GetValues("a.b") != nil {
+		t.Fail()
+	}
+	if c.GetValues("") != nil {
 		t.Fail()
 	}
 }
-*/
 
-/*
-func TestConfig_Put_overwrite(t *testing.T) {
+func TestConfig_GetValuesOk(t *testing.T) {
 	c := New()
-	c.Put("one.two", "two")
-	changed := c.Put("one.two.three", "three")
-	if !changed {
-		t.Fail()
-	}
-	if _, ok := c.m["one"].(Map)["two"].(Map); !ok {
-		t.Fail()
-	}
-}
-*/
+	c.Put("a.b", "b")
+	c.Put("a.c", "c")
 
-/*
-func TestConfig_Put_underwrite(t *testing.T) {
-	c := New()
-	c.Put("one.two.three", NewMap())
-	changed := c.Put("one.two", "two")
-	if !changed {
-		t.Fail()
-	}
-	if c.m["one"].(Map)["two"] != "two" {
-		t.Fail()
-	}
-}
-*/
-
-/*
-func TestConfig_PutKey_emptyKey(t *testing.T) {
-	c := New()
-	changed := c.PutKey(nil, "")
-	if changed {
+	aValues := NewValues()
+	aValues.Put(NewKey("b"), "b")
+	aValues.Put(NewKey("c"), "c")
+	if v, ok := c.GetValuesOk("a"); !reflect.DeepEqual(v, aValues) || !ok {
 		t.Fail()
 	}
 
-	changed = c.PutKey(Key([]string{}), "")
-	if changed {
+	if v, ok := c.GetValuesOk("a.b"); v != nil || ok {
+		t.Fail()
+	}
+	if v, ok := c.GetValuesOk(""); v != nil || ok {
 		t.Fail()
 	}
 }
-*/
+
+type intLoader int
+
+func (l intLoader) Load() (*Values, error) {
+	v := NewValues()
+	v.Put(NewKey(fmt.Sprint(int(l))), int(l))
+	return v, nil
+}
+
+type errorLoader string
+
+func (l errorLoader) Load() (*Values, error) {
+	return nil, fmt.Errorf("%v", string(l))
+}
