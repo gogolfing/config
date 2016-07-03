@@ -101,12 +101,13 @@ func TestKey_Equals(t *testing.T) {
 		{NewKey(), Key(nil), true},
 		{NewKey(), Key([]string{}), true},
 		{NewKey(), NewKey([]string{}...), true},
+		{NewKey("a", "b"), NewKey("a", "b"), true},
 		{NewKey(""), NewKey(), false},
 		{NewKey(""), Key(nil), false},
 		{NewKey(""), Key([]string{}), false},
 		{NewKey(""), NewKey([]string{}...), false},
-		{NewKey("a", "b"), NewKey("a", "b"), true},
 		{NewKey("a", "b"), NewKey("a"), false},
+		{NewKey("a", "b"), NewKey("a", "c"), false},
 		{NewKey("a", "b"), NewKey("a", "b", "c"), false},
 	}
 	for _, test := range tests {
@@ -182,6 +183,26 @@ func TestKey_Append(t *testing.T) {
 		result := test.first.Append(test.others...)
 		if !reflect.DeepEqual(result, test.result) {
 			t.Errorf("%v.Append(%v) = %v WANT %v", test.first, test.others, result, test.result)
+		}
+	}
+}
+
+func TestSeparatorKeyParser_Parse(t *testing.T) {
+	tests := []struct {
+		value  string
+		sep    string
+		result Key
+	}{
+		{"", "", NewKey()},
+		{"a.b.c.d", ".", NewKey("a", "b", "c", "d")},
+		{"a.", ".", NewKey("a", "")},
+		{"hello, world", ", ", NewKey("hello", "world")},
+		{"foo", "", NewKey("f", "o", "o")},
+	}
+	for _, test := range tests {
+		result := SeparatorKeyParser(test.sep).Parse(test.value)
+		if !result.Equals(test.result) {
+			t.Errorf("SeparatorKeyParser(%v).Parse(%v) = %v WANT %v", test.sep, test.value, result, test.result)
 		}
 	}
 }
