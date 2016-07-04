@@ -411,6 +411,33 @@ func getFullConfigTests() []*getFullConfigTest {
 	}
 }
 
+func TestConfig_Put(t *testing.T) {
+	c := New()
+
+	tests := []struct {
+		keyString string
+		value     interface{}
+		changed   bool
+	}{
+		{"a.b.c", "c", true},
+		{"a.b.cc", "c", true},
+		{"a.b.cc", "cc", true},
+		{"a.b.c.d", "d", true},
+		{"a.b.c.d", 10, true},
+		{"a.b.c.d", 10, false},
+		{"a.b.c.d", true, true},
+		{"a.b.c.d", false, true},
+		{"a", "something not a values", true},
+	}
+
+	for _, test := range tests {
+		changed := c.Put(test.keyString, test.value)
+		if changed != test.changed {
+			t.Errorf("c.Put(%v) = %v WANT %v", test.keyString, changed, test.changed)
+		}
+	}
+}
+
 type getFullConfigTest struct {
 	key   Key
 	value interface{}

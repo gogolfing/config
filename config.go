@@ -166,11 +166,11 @@ func (c *Config) GetValuesOk(key string) (*Values, bool) {
 }
 
 func (c *Config) Get(key string) interface{} {
-	return c.GetKey(c.KeyParser.Parse(key))
+	return c.GetKey(c.NewKey(key))
 }
 
 func (c *Config) GetOk(key string) (interface{}, bool) {
-	return c.GetKeyOk(c.KeyParser.Parse(key))
+	return c.GetKeyOk(c.NewKey(key))
 }
 
 func (c *Config) GetKey(key Key) interface{} {
