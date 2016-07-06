@@ -35,38 +35,8 @@ func (c *Config) LoadAll() (bool, error) {
 	return c.PutLoaders(c.loaders...)
 }
 
-func (c *Config) GetInt(key string) int {
-	i, _ := c.GetIntOk(key)
-	return i
-}
-
-func (c *Config) GetIntOk(key string) (int, bool) {
-	v, ok := c.GetOk(key)
-	if !ok {
-		return 0, false
-	}
-	result, ok := 0, false
-	switch i := v.(type) {
-	case uint8:
-		result, ok = int(i), true
-	case int8:
-		result, ok = int(i), true
-	case uint16:
-		result, ok = int(i), true
-	case int16:
-		result, ok = int(i), true
-	case uint32:
-		result, ok = int(i), true
-	case int32:
-		result, ok = int(i), true
-	case int:
-		result, ok = i, true
-	case uint64:
-		result, ok = int(i), true
-	case int64:
-		result, ok = int(i), true
-	}
-	return result, ok
+func (c *Config) Values() *Values {
+	return c.values
 }
 
 func (c *Config) GetInt64(key string) int64 {
@@ -92,6 +62,8 @@ func (c *Config) GetInt64Ok(key string) (int64, bool) {
 	case uint32:
 		result, ok = int64(i), true
 	case int32:
+		result, ok = int64(i), true
+	case uint:
 		result, ok = int64(i), true
 	case int:
 		result, ok = int64(i), true
@@ -179,6 +151,10 @@ func (c *Config) GetKey(key Key) interface{} {
 
 func (c *Config) GetKeyOk(key Key) (interface{}, bool) {
 	return c.values.GetOk(key)
+}
+
+func (c *Config) Merge(other *Config) bool {
+	return c.values.Merge(nil, other.values)
 }
 
 func (c *Config) Put(key string, value interface{}) bool {

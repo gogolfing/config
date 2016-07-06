@@ -55,56 +55,6 @@ func TestConfig_LoadAll_error(t *testing.T) {
 	}
 }
 
-func TestConfig_GetInt(t *testing.T) {
-	c := New()
-	c.Put("int", 8)
-	if c.GetInt("int") != 8 {
-		t.Fail()
-	}
-	if c.GetInt("") != 0 {
-		t.Fail()
-	}
-}
-
-func TestConfig_GetIntOk(t *testing.T) {
-	c := New()
-	c.Put("zero", 0)
-	c.Put("zero string", "0")
-	c.Put("uint8", uint8(math.MaxUint8))
-	c.Put("int8", int8(math.MaxInt8))
-	c.Put("uint16", uint16(math.MaxUint16))
-	c.Put("int16", int16(math.MaxInt16))
-	c.Put("uint32", uint32(math.MaxUint32))
-	c.Put("int32", int32(math.MaxInt32))
-	c.Put("int", int(math.MaxInt32))
-	c.Put("uint64", uint64(math.MaxUint64))
-	c.Put("int64", int64(math.MaxInt64))
-	tests := []struct {
-		key    string
-		result int
-		ok     bool
-	}{
-		{"something", 0, false},
-		{"zero", 0, true},
-		{"zero string", 0, false},
-		{"uint8", math.MaxUint8, true},
-		{"int8", math.MaxInt8, true},
-		{"uint16", math.MaxUint16, true},
-		{"int16", math.MaxInt16, true},
-		{"uint32", math.MaxUint32, true},
-		{"int32", math.MaxInt32, true},
-		{"int", math.MaxInt32, true},
-		{"uint64", -1, true},
-		{"int64", math.MaxInt64, true},
-	}
-	for _, test := range tests {
-		result, ok := c.GetIntOk(test.key)
-		if result != test.result || ok != test.ok {
-			t.Errorf("c.GetIntOk(%v) = %v, %v WANT %v, %v", test.key, result, ok, test.result, test.ok)
-		}
-	}
-}
-
 func TestConfig_GetInt64(t *testing.T) {
 	c := New()
 	c.Put("int64", 8)
@@ -118,7 +68,7 @@ func TestConfig_GetInt64(t *testing.T) {
 
 func TestConfig_GetInt64Ok(t *testing.T) {
 	c := New()
-	c.Put("zero", int64(0))
+	c.Put("zero", 0)
 	c.Put("zero string", "0")
 	c.Put("uint8", uint8(math.MaxUint8))
 	c.Put("int8", int8(math.MaxInt8))
@@ -126,6 +76,7 @@ func TestConfig_GetInt64Ok(t *testing.T) {
 	c.Put("int16", int16(math.MaxInt16))
 	c.Put("uint32", uint32(math.MaxUint32))
 	c.Put("int32", int32(math.MaxInt32))
+	c.Put("uint", uint(math.MaxUint32))
 	c.Put("int", int(math.MaxInt32))
 	c.Put("uint64", uint64(math.MaxUint64))
 	c.Put("int64", int64(math.MaxInt64))
@@ -144,6 +95,7 @@ func TestConfig_GetInt64Ok(t *testing.T) {
 		{"uint32", math.MaxUint32, true},
 		{"int32", math.MaxInt32, true},
 		{"int", math.MaxInt32, true},
+		{"uint", math.MaxUint32, true},
 		{"uint64", -1, true},
 		{"int64", math.MaxInt64, true},
 	}
@@ -411,6 +363,9 @@ func getFullConfigTests() []*getFullConfigTest {
 	}
 }
 
+func TestConfig_Merge(t *testing.T) {
+}
+
 func TestConfig_Put(t *testing.T) {
 	c := New()
 
@@ -436,6 +391,15 @@ func TestConfig_Put(t *testing.T) {
 			t.Errorf("c.Put(%v) = %v WANT %v", test.keyString, changed, test.changed)
 		}
 	}
+}
+
+func TestConfig_PutKey(t *testing.T) {
+}
+
+func TestConfig_PutLoaders(t *testing.T) {
+}
+
+func TestConfig_NewKey(t *testing.T) {
 }
 
 type getFullConfigTest struct {

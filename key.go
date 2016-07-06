@@ -60,6 +60,10 @@ func (k Key) EndsWith(other Key) bool {
 	return true
 }
 
+func (k Key) AppendStrings(others ...string) Key {
+	return k.Append(NewKey(others...))
+}
+
 func (k Key) Append(others ...Key) Key {
 	result := NewKey(k...)
 	for _, other := range others {
@@ -72,10 +76,16 @@ type KeyParser interface {
 	Parse(k string) Key
 }
 
+type KeyParserFunc func(k string) Key
+
+func (pf KeyParserFunc) Parse(k string) Key {
+	return pf(k)
+}
+
 type SeparatorKeyParser string
 
-func (s SeparatorKeyParser) Parse(k string) Key {
-	return NewKey(strings.Split(k, string(s))...)
+func (p SeparatorKeyParser) Parse(k string) Key {
+	return NewKey(strings.Split(k, string(p))...)
 }
 
 const PeriodSeparatorKeyParser = SeparatorKeyParser(".")
