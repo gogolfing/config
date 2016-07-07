@@ -38,6 +38,14 @@ func (v *Values) EachKeyValue(visitor func(key Key, value interface{})) {
 	v.root.eachKeyValue(nil, visitor)
 }
 
+func (v *Values) Equal(other *Values) bool {
+	v.lock.RLock()
+	defer v.lock.RUnlock()
+	other.lock.RLock()
+	defer other.lock.RUnlock()
+	return v.root.equal(other.root)
+}
+
 func (v *Values) Put(key Key, value interface{}) bool {
 	v.lock.Lock()
 	defer v.lock.Unlock()
@@ -201,4 +209,27 @@ func (n *node) eachKeyValue(key Key, visitor func(key Key, value interface{})) {
 	for keyPart, childNode := range n.children {
 		childNode.eachKeyValue(append(NewKey(key...), keyPart), visitor)
 	}
+}
+
+func (n *node) equal(other *node) bool {
+	if n.value != other.value {
+		return false
+	}
+	return n.childrenEqual(other)
+}
+
+func (n *node) childrenEqual(other *node) bool {
+	if n.isSet() != other.isSet() {
+		return false
+	}
+	if len(n.children) != len(other.children) {
+		return false
+	}
+	for keyPart, child := range n.children {
+		otherChild, ok := other.children[keyPart]
+		if !ok || !child.equal(otherChild) {
+			return false
+		}
+	}
+	return true
 }
