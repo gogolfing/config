@@ -86,6 +86,35 @@ func (v *Values) Clone() *Values {
 	return newValues(v.root)
 }
 
+func (v *Values) Remove(key Key) (interface{}, bool) {
+	v.lock.Lock()
+	defer v.lock.Unlock()
+
+	if key.IsEmpty() {
+		if v.root.isSet() {
+			result := v.root.value
+			v.root = newNode()
+			return result, true
+		}
+		return nil, false
+	}
+
+	parent, found, _, _ := v.root.findDescendent(nil, key, false, false)
+	if found == nil {
+		return nil, false
+	}
+	var result interface{} = nil
+	if found.isSet() {
+		result = found.value
+	} else {
+		result = newValues(found)
+	}
+	if parent != nil {
+		delete(parent.children, key[key.Len()-1])
+	}
+	return result, true
+}
+
 type node struct {
 	value    interface{}
 	children map[string]*node
@@ -229,35 +258,6 @@ func (n *node) childrenEqual(other *node) bool {
 		}
 	}
 	return true
-}
-
-func (v *Values) Remove(key Key) (interface{}, bool) {
-	v.lock.Lock()
-	defer v.lock.Unlock()
-
-	if key.IsEmpty() {
-		if v.root.isSet() {
-			result := v.root.value
-			v.root = newNode()
-			return result, true
-		}
-		return nil, false
-	}
-
-	parent, found, _, _ := v.root.findDescendent(nil, key, false, false)
-	if found == nil {
-		return nil, false
-	}
-	var result interface{} = nil
-	if found.isSet() {
-		result = found.value
-	} else {
-		result = newValues(found)
-	}
-	if parent != nil {
-		delete(parent.children, key[key.Len()-1])
-	}
-	return result, true
 }
 
 func (n *node) findDescendent(parent *node, key Key, canChange, hasChanged bool) (*node, *node, Key, bool) {
