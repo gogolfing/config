@@ -91,7 +91,7 @@ func TestKey_Len(t *testing.T) {
 	}
 }
 
-func TestKey_Equals(t *testing.T) {
+func TestKey_Equal(t *testing.T) {
 	tests := []struct {
 		key    Key
 		other  Key
@@ -111,9 +111,9 @@ func TestKey_Equals(t *testing.T) {
 		{NewKey("a", "b"), NewKey("a", "b", "c"), false},
 	}
 	for _, test := range tests {
-		result := test.key.Equals(test.other)
+		result := test.key.Equal(test.other)
 		if result != test.result {
-			t.Errorf("%v.Equals(%v) = %v WANT %v", test.key, test.other, result, test.result)
+			t.Errorf("%v.Equal(%v) = %v WANT %v", test.key, test.other, result, test.result)
 		}
 	}
 }
@@ -172,6 +172,7 @@ func TestKey_Append(t *testing.T) {
 		others []Key
 		result Key
 	}{
+		{Key(nil), nil, Key(nil)},
 		{Key(nil), []Key{}, Key(nil)},
 		{NewKey(), []Key{NewKey()}, NewKey()},
 		{Key(nil), []Key{NewKey("a")}, NewKey("a")},
@@ -183,6 +184,25 @@ func TestKey_Append(t *testing.T) {
 		result := test.first.Append(test.others...)
 		if !reflect.DeepEqual(result, test.result) {
 			t.Errorf("%v.Append(%v) = %v WANT %v", test.first, test.others, result, test.result)
+		}
+	}
+}
+
+func TestKey_AppendStrings(t *testing.T) {
+	tests := []struct {
+		first  Key
+		others []string
+		result Key
+	}{
+		{Key(nil), nil, Key(nil)},
+		{Key(nil), []string{}, Key(nil)},
+		{Key(nil), []string{"a"}, NewKey("a")},
+		{NewKey("a"), []string{"b"}, NewKey("a", "b")},
+	}
+	for _, test := range tests {
+		result := test.first.AppendStrings(test.others...)
+		if !reflect.DeepEqual(result, test.result) {
+			t.Errorf("%v.AppendStrings(%v) = %v WANT %v", test.first, test.others, result, test.result)
 		}
 	}
 }
@@ -201,7 +221,7 @@ func TestSeparatorKeyParser_Parse(t *testing.T) {
 	}
 	for _, test := range tests {
 		result := SeparatorKeyParser(test.sep).Parse(test.value)
-		if !result.Equals(test.result) {
+		if !result.Equal(test.result) {
 			t.Errorf("SeparatorKeyParser(%v).Parse(%v) = %v WANT %v", test.sep, test.value, result, test.result)
 		}
 	}

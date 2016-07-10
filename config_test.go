@@ -55,6 +55,13 @@ func TestConfig_LoadAll_error(t *testing.T) {
 	}
 }
 
+func TestConfig_Values(t *testing.T) {
+	c := New()
+	if c.Values() != c.values {
+		t.Fail()
+	}
+}
+
 func TestConfig_GetInt64(t *testing.T) {
 	c := New()
 	c.Put("int64", 8)
@@ -289,6 +296,11 @@ func TestConfig_GetKeyOk(t *testing.T) {
 	}
 }
 
+func TestConfig_Merge(t *testing.T) {
+	c := New()
+	c.Merge(New())
+}
+
 func getFullConfig() *Config {
 	c := New()
 
@@ -363,9 +375,6 @@ func getFullConfigTests() []*getFullConfigTest {
 	}
 }
 
-func TestConfig_Merge(t *testing.T) {
-}
-
 func TestConfig_Put(t *testing.T) {
 	c := New()
 
@@ -393,13 +402,59 @@ func TestConfig_Put(t *testing.T) {
 	}
 }
 
-func TestConfig_PutKey(t *testing.T) {
+func TestConfig_PutLoaders_success(t *testing.T) {
+	c := New()
+	_, err := c.PutLoaders(intLoader(1), intLoader(2))
+	if err != nil {
+		t.Error(err)
+	}
+
+	result := New()
+	result.Put("1", 1)
+	result.Put("2", 2)
+
+	if !c.EqualValues(result) {
+		t.Fail()
+	}
 }
 
-func TestConfig_PutLoaders(t *testing.T) {
+func TestConfig_PutLoaders_error(t *testing.T) {
+	c := New()
+	_, err := c.PutLoaders(intLoader(1), errorLoader("error"), intLoader(2))
+	if err == nil {
+		t.Fail()
+	}
+
+	result := New()
+
+	if !c.EqualValues(result) {
+		t.Fail()
+	}
+}
+
+func TestConfig_Remove(t *testing.T) {
+	c := New()
+	c.Put("a", "a")
+	c.Remove("a")
+	if result, ok := c.GetOk("a"); result != nil || ok {
+		t.Fail()
+	}
 }
 
 func TestConfig_NewKey(t *testing.T) {
+	c := New()
+	called := false
+	c.KeyParser = KeyParserFunc(func(k string) Key {
+		if k != "key" {
+			t.Fail()
+		}
+		called = true
+		return NewKey("this", "is", "a", "parsed", "key")
+	})
+	key := c.NewKey("key")
+	if !key.Equal(NewKey("this", "is", "a", "parsed", "key")) {
+		t.Fail()
+	}
 }
 
 type getFullConfigTest struct {

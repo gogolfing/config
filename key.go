@@ -20,7 +20,7 @@ func (k Key) Len() int {
 	return len(k)
 }
 
-func (k Key) Equals(other Key) bool {
+func (k Key) Equal(other Key) bool {
 	if k.IsEmpty() && other.IsEmpty() {
 		return true
 	}
@@ -60,16 +60,16 @@ func (k Key) EndsWith(other Key) bool {
 	return true
 }
 
-func (k Key) AppendStrings(others ...string) Key {
-	return k.Append(NewKey(others...))
-}
-
 func (k Key) Append(others ...Key) Key {
 	result := NewKey(k...)
 	for _, other := range others {
 		result = append(result, other...)
 	}
 	return result
+}
+
+func (k Key) AppendStrings(others ...string) Key {
+	return k.Append(NewKey(others...))
 }
 
 type KeyParser interface {
