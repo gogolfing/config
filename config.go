@@ -39,6 +39,10 @@ func (c *Config) Values() *Values {
 	return c.values
 }
 
+func (c *Config) EqualValues(other *Config) bool {
+	return c.values.Equal(other.values)
+}
+
 func (c *Config) GetInt64(key string) int64 {
 	i64, _ := c.GetInt64Ok(key)
 	return i64
@@ -177,6 +181,10 @@ func (c *Config) PutLoaders(loaders ...Loader) (bool, error) {
 	}
 	c.values.Merge(nil, temp)
 	return changed, nil
+}
+
+func (c *Config) Remove(key string) (interface{}, bool) {
+	return c.values.Remove(c.NewKey(key))
 }
 
 func (c *Config) NewKey(k string) Key {

@@ -169,6 +169,10 @@ func (n *node) setValues(values *Values) bool {
 	return changed
 }
 
+func (n *node) remove(key Key) (interface{}, bool) {
+	return nil, false
+}
+
 func (n *node) getValueOrNodeOk(key Key) (interface{}, bool) {
 	if key.IsEmpty() {
 		if n.isSet() {
@@ -232,4 +236,46 @@ func (n *node) childrenEqual(other *node) bool {
 		}
 	}
 	return true
+}
+
+func (v *Values) Remove(key Key) (interface{}, bool) {
+	v.lock.Lock()
+	defer v.lock.Unlock()
+
+	parent, found, _, _ := v.root.getDescendent(nil, key, false, false)
+	if found == nil {
+		return nil, false
+	}
+}
+
+func (n *node) getDescendent(parent *node, key Key, canChange, hasChanged bool) (*node, *node, Key, bool) {
+	if key.IsEmpty() {
+		return parent, n, key, hasChanged
+	}
+	child, changed := n.getChildAnother(key[0], canChange)
+	if child == nil {
+		return parent, nil, key, changed
+	}
+	return child.getDescendent(n, key[1:], canChange, changed || hasChanged)
+}
+
+func (n *node) getChildAnother(keyPart string, canChange bool) (*node, bool) {
+	changed := false
+	if n.isSet() { //no children
+		if !canChange {
+			return nil, false
+		}
+		n.value, changed = nil, true
+		n.children = map[string]*node{}
+	}
+	child, ok := n.children[keyPart]
+	if !ok {
+		if !canChange {
+			return nil, false
+		}
+		n.children[keyPart] = newNode()
+		child = n.children[keyPart]
+		changed = true
+	}
+	return child, changed
 }
