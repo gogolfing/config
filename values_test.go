@@ -1181,6 +1181,222 @@ func TestValues_Clone(t *testing.T) {
 	}
 }
 
+func TestValues_Equal(t *testing.T) {
+	tests := []struct {
+		a      *Values
+		b      *Values
+		result bool
+	}{
+		{
+			NewValues(),
+			NewValues(),
+			true,
+		},
+		{
+			NewValues(),
+			func() *Values {
+				v := NewValues()
+				v.Put(nil, "hello")
+				return v
+			}(),
+			false,
+		},
+		{
+			func() *Values {
+				v := NewValues()
+				v.Put(nil, "hello")
+				return v
+			}(),
+			func() *Values {
+				v := NewValues()
+				v.Put(nil, "hello")
+				return v
+			}(),
+			true,
+		},
+		{
+			func() *Values {
+				v := NewValues()
+				v.Put(nil, "hello")
+				return v
+			}(),
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a"), "hello")
+				return v
+			}(),
+			false,
+		},
+		{
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a", "b"), "b")
+				v.Put(NewKey("a", "c"), "c")
+				return v
+			}(),
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a", "b"), "b")
+				v.Put(NewKey("a", "c"), "c")
+				return v
+			}(),
+			true,
+		},
+		{
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a", "b"), "b")
+				v.Put(NewKey("a", "c"), "c")
+				return v
+			}(),
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a", "b"), 'b')
+				v.Put(NewKey("a", "c"), "c")
+				return v
+			}(),
+			false,
+		},
+		{
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a", "b"), "b")
+				return v
+			}(),
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a", "b"), "b")
+				v.Put(NewKey("a", "c"), "c")
+				return v
+			}(),
+			false,
+		},
+	}
+	for index, test := range tests {
+		if result := test.a.Equal(test.b); result != test.result {
+			t.Errorf("%v, test.a.Equal(test.b) = %v WANT %v", index, result, test.result)
+		}
+		if result := test.b.Equal(test.a); result != test.result {
+			t.Errorf("%v, test.b.Equal(test.a) = %v WANT %v", index, result, test.result)
+		}
+	}
+}
+
+func TestValues_Remove(t *testing.T) {
+	tests := []struct {
+		values  *Values
+		after   *Values
+		key     Key
+		result  interface{}
+		changed bool
+	}{
+		{
+			NewValues(),
+			NewValues(),
+			NewKey(),
+			nil,
+			false,
+		},
+		{
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey(), "hello")
+				return v
+			}(),
+			NewValues(),
+			NewKey(),
+			"hello",
+			true,
+		},
+		{
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a"), "a")
+				v.Put(NewKey("b"), "b")
+				return v
+			}(),
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("b"), "b")
+				return v
+			}(),
+			NewKey("a"),
+			"a",
+			true,
+		},
+		{
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a"), "a")
+				v.Put(NewKey("b"), "b")
+				return v
+			}(),
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a"), "a")
+				v.Put(NewKey("b"), "b")
+				return v
+			}(),
+			NewKey(),
+			nil,
+			false,
+		},
+		{
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("e", "b"), "b")
+				v.Put(NewKey("e", "c"), "c")
+				v.Put(NewKey("f"), "f")
+				return v
+			}(),
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("f"), "f")
+				return v
+			}(),
+			NewKey("e"),
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("b"), "b")
+				v.Put(NewKey("c"), "c")
+				return v
+			}(),
+			true,
+		},
+		{
+			NewValues(),
+			NewValues(),
+			NewKey("b"),
+			nil,
+			false,
+		},
+		{
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a"), "a")
+				return v
+			}(),
+			func() *Values {
+				v := NewValues()
+				v.Put(NewKey("a"), "a")
+				return v
+			}(),
+			NewKey("b"),
+			nil,
+			false,
+		},
+	}
+	for index, test := range tests {
+		result, changed := test.values.Remove(test.key)
+		if !reflect.DeepEqual(result, test.result) || changed != test.changed {
+			t.Errorf("%v, test.values.Remove(%v) = %v, %v WANT %v, %v", index, test.key, result, changed, test.result, test.changed)
+		}
+		if !test.values.Equal(test.after) {
+			t.Errorf("%v, test.values.Equal(test.after) = %v WANT %v", index, false, true)
+		}
+	}
+}
+
 func TestNewNodeValue(t *testing.T) {
 	tests := []struct {
 		value interface{}

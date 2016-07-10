@@ -169,10 +169,6 @@ func (n *node) setValues(values *Values) bool {
 	return changed
 }
 
-func (n *node) remove(key Key) (interface{}, bool) {
-	return nil, false
-}
-
 func (n *node) getValueOrNodeOk(key Key) (interface{}, bool) {
 	if key.IsEmpty() {
 		if n.isSet() {
@@ -223,9 +219,6 @@ func (n *node) equal(other *node) bool {
 }
 
 func (n *node) childrenEqual(other *node) bool {
-	if n.isSet() != other.isSet() {
-		return false
-	}
 	if len(n.children) != len(other.children) {
 		return false
 	}
@@ -242,13 +235,32 @@ func (v *Values) Remove(key Key) (interface{}, bool) {
 	v.lock.Lock()
 	defer v.lock.Unlock()
 
-	parent, found, _, _ := v.root.getDescendent(nil, key, false, false)
+	if key.IsEmpty() {
+		if v.root.isSet() {
+			result := v.root.value
+			v.root = newNode()
+			return result, true
+		}
+		return nil, false
+	}
+
+	parent, found, _, _ := v.root.findDescendent(nil, key, false, false)
 	if found == nil {
 		return nil, false
 	}
+	var result interface{} = nil
+	if found.isSet() {
+		result = found.value
+	} else {
+		result = newValues(found)
+	}
+	if parent != nil {
+		delete(parent.children, key[key.Len()-1])
+	}
+	return result, true
 }
 
-func (n *node) getDescendent(parent *node, key Key, canChange, hasChanged bool) (*node, *node, Key, bool) {
+func (n *node) findDescendent(parent *node, key Key, canChange, hasChanged bool) (*node, *node, Key, bool) {
 	if key.IsEmpty() {
 		return parent, n, key, hasChanged
 	}
@@ -256,12 +268,12 @@ func (n *node) getDescendent(parent *node, key Key, canChange, hasChanged bool) 
 	if child == nil {
 		return parent, nil, key, changed
 	}
-	return child.getDescendent(n, key[1:], canChange, changed || hasChanged)
+	return child.findDescendent(n, key[1:], canChange, changed || hasChanged)
 }
 
 func (n *node) getChildAnother(keyPart string, canChange bool) (*node, bool) {
 	changed := false
-	if n.isSet() { //no children
+	if n.isSet() {
 		if !canChange {
 			return nil, false
 		}
