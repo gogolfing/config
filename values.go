@@ -24,6 +24,7 @@ func newValues(root *node) *Values {
 func (v *Values) Merge(key Key, other *Values) bool {
 	v.lock.Lock()
 	defer v.lock.Unlock()
+
 	changed := false
 	other.EachKeyValue(func(otherKey Key, value interface{}) {
 		actualKey := key.Append(otherKey)
@@ -35,6 +36,7 @@ func (v *Values) Merge(key Key, other *Values) bool {
 func (v *Values) EachKeyValue(visitor func(key Key, value interface{})) {
 	v.lock.RLock()
 	defer v.lock.RUnlock()
+
 	v.root.eachKeyValue(nil, visitor)
 }
 
@@ -43,12 +45,14 @@ func (v *Values) Equal(other *Values) bool {
 	defer v.lock.RUnlock()
 	other.lock.RLock()
 	defer other.lock.RUnlock()
+
 	return v.root.equal(other.root)
 }
 
 func (v *Values) Put(key Key, value interface{}) bool {
 	v.lock.Lock()
 	defer v.lock.Unlock()
+
 	return v.put(key, value)
 }
 
@@ -59,6 +63,7 @@ func (v *Values) put(key Key, value interface{}) bool {
 func (v *Values) IsEmpty() bool {
 	v.lock.RLock()
 	defer v.lock.RUnlock()
+
 	return v.root.isEmpty()
 }
 
@@ -70,19 +75,21 @@ func (v *Values) Get(key Key) interface{} {
 func (v *Values) GetOk(key Key) (interface{}, bool) {
 	v.lock.RLock()
 	defer v.lock.RUnlock()
-	value, ok := v.root.getValueOrNodeOk(key)
-	if !ok {
+
+	_, found, _ := v.root.findDescendent(nil, key, false, false)
+	if found == nil {
 		return nil, false
 	}
-	if node, ok := value.(*node); ok {
-		return newValues(node.clone()), true
+	if found.isSet() {
+		return found.value, true
 	}
-	return value, true
+	return newValues(found.clone()), true
 }
 
 func (v *Values) Clone() *Values {
 	v.lock.RLock()
 	defer v.lock.RUnlock()
+
 	return newValues(v.root)
 }
 
@@ -99,7 +106,7 @@ func (v *Values) Remove(key Key) (interface{}, bool) {
 		return nil, false
 	}
 
-	parent, found, _, _ := v.root.findDescendent(nil, key, false, false)
+	parent, found, _ := v.root.findDescendent(nil, key, false, false)
 	if found == nil {
 		return nil, false
 	}
@@ -146,25 +153,9 @@ func (n *node) put(key Key, value interface{}) bool {
 	if key.IsEmpty() {
 		return n.setValue(value)
 	}
-	child, changed := n.getChild(key[0])
+	child, changed := n.findChild(key[0], true)
 	remainingKey := key[1:]
 	return child.put(remainingKey, value) || changed
-}
-
-func (n *node) getChild(keyPart string) (*node, bool) {
-	changed := false
-	if n.isSet() {
-		n.value = nil
-		changed = true
-		n.children = map[string]*node{}
-	}
-	child, ok := n.children[keyPart]
-	if !ok {
-		n.children[keyPart] = newNode()
-		child = n.children[keyPart]
-		changed = true
-	}
-	return child, changed
 }
 
 func (n *node) setValue(value interface{}) bool {
@@ -196,20 +187,6 @@ func (n *node) setValues(values *Values) bool {
 		changed = n.put(key, value) || changed
 	})
 	return changed
-}
-
-func (n *node) getValueOrNodeOk(key Key) (interface{}, bool) {
-	if key.IsEmpty() {
-		if n.isSet() {
-			return n.value, true
-		}
-		return n, true
-	}
-	child, ok := n.children[key[0]]
-	if !ok {
-		return nil, false
-	}
-	return child.getValueOrNodeOk(key[1:])
 }
 
 func (n *node) clone() *node {
@@ -260,23 +237,20 @@ func (n *node) childrenEqual(other *node) bool {
 	return true
 }
 
-func (n *node) findDescendent(parent *node, key Key, canChange, hasChanged bool) (*node, *node, Key, bool) {
+func (n *node) findDescendent(parent *node, key Key, canChange, hasChanged bool) (*node, *node, bool) {
 	if key.IsEmpty() {
-		return parent, n, key, hasChanged
+		return parent, n, hasChanged
 	}
-	child, changed := n.getChildAnother(key[0], canChange)
+	child, changed := n.findChild(key[0], canChange)
 	if child == nil {
-		return parent, nil, key, changed
+		return parent, nil, changed
 	}
 	return child.findDescendent(n, key[1:], canChange, changed || hasChanged)
 }
 
-func (n *node) getChildAnother(keyPart string, canChange bool) (*node, bool) {
+func (n *node) findChild(keyPart string, canChange bool) (*node, bool) {
 	changed := false
 	if n.isSet() {
-		if !canChange {
-			return nil, false
-		}
 		n.value, changed = nil, true
 		n.children = map[string]*node{}
 	}
