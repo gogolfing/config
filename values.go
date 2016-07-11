@@ -251,6 +251,9 @@ func (n *node) findDescendent(parent *node, key Key, canChange, hasChanged bool)
 func (n *node) findChild(keyPart string, canChange bool) (*node, bool) {
 	changed := false
 	if n.isSet() {
+		if !canChange {
+			return nil, false
+		}
 		n.value, changed = nil, true
 		n.children = map[string]*node{}
 	}

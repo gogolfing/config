@@ -1419,6 +1419,14 @@ func TestNewNode(t *testing.T) {
 	}
 }
 
+func TestNode_findChild_isSetAndCannotChange(t *testing.T) {
+	n := newNodeValue(0)
+	child, changed := n.findChild("", false)
+	if child != nil || changed {
+		t.Fail()
+	}
+}
+
 func testNode(t *testing.T, n *node, value interface{}, childrenNil bool) {
 	if n == nil {
 		t.Error("*node should not be nil")
