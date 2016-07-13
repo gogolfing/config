@@ -1,8 +1,22 @@
+//Package config provides types that allow loading, storing, retrieving, and
+//removing arbitrary values that are referenced by keys.
 package config
 
 import "sync"
 
+//Type Config provides an methods to store, retrieve, and remove arbitrary values
+//that are referenced by keys.
+//
+//The keys to a Config type are of type string. These string keys are parsed into
+//Key types via a KeyParser.
+//
+//Key types that are parsed by a Config type are then used to reference into Values.
+//Values is the storage type providing all functionality to Config.
 type Config struct {
+	//KeyParser that turns strings into Keys that are then used with
+	//this Config's underlying Values.
+	//This enabled easier access to Config value with a simple string as opposed
+	//to a Key type.
 	KeyParser KeyParser
 
 	values *Values
@@ -41,6 +55,22 @@ func (c *Config) Values() *Values {
 
 func (c *Config) EqualValues(other *Config) bool {
 	return c.values.Equal(other.values)
+}
+
+//Clone creates and returns a new *Config with KeyParser and added loaders
+//shallow copied, and with *Values cloned via *Values.Clone().
+func (c *Config) Clone() *Config {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+
+	return &Config{
+		KeyParser: c.KeyParser,
+
+		values: c.values.Clone(),
+
+		lock:    &sync.Mutex{},
+		loaders: c.loaders,
+	}
 }
 
 func (c *Config) GetInt64(key string) int64 {

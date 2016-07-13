@@ -62,6 +62,24 @@ func TestConfig_Values(t *testing.T) {
 	}
 }
 
+func TestConfig_EqualValues(t *testing.T) {
+	c := New()
+	if !c.EqualValues(New()) {
+		t.Fail()
+	}
+}
+
+func TestConfig_Clone(t *testing.T) {
+	c := New()
+	c.AddLoaders(intLoader(1))
+
+	result := c.Clone()
+
+	if !reflect.DeepEqual(c, result) {
+		t.Fail()
+	}
+}
+
 func TestConfig_GetInt64(t *testing.T) {
 	c := New()
 	c.Put("int64", 8)
