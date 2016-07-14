@@ -12,6 +12,10 @@ import "sync"
 //
 //Key types that are parsed by a Config type are then used to reference into Values.
 //Values is the storage type providing all functionality to Config.
+//
+//Config is safe for use by multiple goroutines.
+//Though the KeyParser is not protected from concurrent use, implementations can be
+//implemented in a safe manner.
 type Config struct {
 	//KeyParser that turns strings into Keys that are then used with
 	//this Config's underlying Values.
@@ -25,6 +29,8 @@ type Config struct {
 	loaders []Loader
 }
 
+//New creates a new *Config with an empty Values and Loaders.
+//KeyParser is set to PeriodSeparatorKeyParser.
 func New() *Config {
 	return &Config{
 		KeyParser: PeriodSeparatorKeyParser,
@@ -36,23 +42,37 @@ func New() *Config {
 	}
 }
 
+//AddLoaders adds Loaders to an internal slice of loaders.
+//There is no check for duplicates or nil Loaders.
+//This method servers as a utility to store Loaders associated with a Config
+//to be merged into c at a later time by c.LoadAll().
 func (c *Config) AddLoaders(loaders ...Loader) *Config {
 	c.lock.Lock()
 	defer c.lock.Unlock()
+
 	c.loaders = append(c.loaders, loaders...)
 	return c
 }
 
+//LoadAll is a helper for c.PutLoaders() called with all Loaders
+//added previously with c.AddLoaders().
 func (c *Config) LoadAll() (bool, error) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
+
 	return c.PutLoaders(c.loaders...)
 }
 
+//Values returns the internal Values used for storage.
+//The Values type is sage for use by multiple goroutines independent of
+//the Config type.
+//The internal reference is simply returned, and thus modifications to the
+//returned *Values will affect c.
 func (c *Config) Values() *Values {
 	return c.values
 }
 
+//EqualValues is sugar for c.Values().Equal(other.Values()).
 func (c *Config) EqualValues(other *Config) bool {
 	return c.values.Equal(other.values)
 }
