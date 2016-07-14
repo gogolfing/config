@@ -93,117 +93,160 @@ func (c *Config) Clone() *Config {
 	}
 }
 
-func (c *Config) GetInt64(key string) int64 {
+//GetInt64 returns an int64 casted integer type stored at key.
+//The zero value for int64 is returned if an integer type does not exist at key.
+func (c *Config) GetInt64(key string) (i int64) {
 	i64, _ := c.GetInt64Ok(key)
 	return i64
 }
 
-func (c *Config) GetInt64Ok(key string) (int64, bool) {
+//GetInt64Ok returns an int64 casted integer type stored at key.
+//The zero value for int64 is returned if an integer type does not exist at key.
+//The return value ok indicates whether or not an integer type actually exists at key.
+func (c *Config) GetInt64Ok(key string) (i int64, ok bool) {
 	v, ok := c.GetOk(key)
 	if !ok {
 		return 0, false
 	}
-	result, ok := int64(0), false
-	switch i := v.(type) {
+	i, ok = int64(0), false
+	switch iType := v.(type) {
 	case uint8:
-		result, ok = int64(i), true
+		i, ok = int64(iType), true
 	case int8:
-		result, ok = int64(i), true
+		i, ok = int64(iType), true
 	case uint16:
-		result, ok = int64(i), true
+		i, ok = int64(iType), true
 	case int16:
-		result, ok = int64(i), true
+		i, ok = int64(iType), true
 	case uint32:
-		result, ok = int64(i), true
+		i, ok = int64(iType), true
 	case int32:
-		result, ok = int64(i), true
+		i, ok = int64(iType), true
 	case uint:
-		result, ok = int64(i), true
+		i, ok = int64(iType), true
 	case int:
-		result, ok = int64(i), true
+		i, ok = int64(iType), true
 	case uint64:
-		result, ok = int64(i), true
+		i, ok = int64(iType), true
 	case int64:
-		result, ok = i, true
+		i, ok = iType, true
 	}
-	return result, ok
+	return
 }
 
-func (c *Config) GetBool(key string) bool {
-	b, _ := c.GetBoolOk(key)
-	return b
+//GetBool returns a bool stored at key.
+//The zero value for bool is returned if a bool does not exist at key.
+func (c *Config) GetBool(key string) (b bool) {
+	b, _ = c.GetBoolOk(key)
+	return
 }
 
-func (c *Config) GetBoolOk(key string) (bool, bool) {
+//GetBoolOk returns a bool stored at key.
+//The zero value for bool is returned if a bool does not exist at key.
+//The return value ok indicates whether or not a bool actually exists at key.
+func (c *Config) GetBoolOk(key string) (b bool, ok bool) {
 	v, ok := c.GetOk(key)
 	if !ok {
 		return false, false
 	}
-	b, ok := v.(bool)
-	return b, ok
+	b, ok = v.(bool)
+	return
 }
 
-func (c *Config) GetString(key string) string {
-	s, _ := c.GetStringOk(key)
-	return s
+//GetString returns a string stored at key.
+//The zero value for string is returned if a string does not exist at key.
+func (c *Config) GetString(key string) (s string) {
+	s, _ = c.GetStringOk(key)
+	return
 }
 
-func (c *Config) GetStringOk(key string) (string, bool) {
+//GetStringOk returns a string stored at key.
+//The zero value for string is returned if a string does not exist at key.
+//The return value ok indicates whether or not a string actually exists at key.
+func (c *Config) GetStringOk(key string) (s string, ok bool) {
 	v, ok := c.GetOk(key)
 	if !ok {
 		return "", false
 	}
-	s, ok := v.(string)
-	return s, ok
+	s, ok = v.(string)
+	return
 }
 
-func (c *Config) GetFloat64(key string) float64 {
-	f, _ := c.GetFloat64Ok(key)
-	return f
+//GetFloat64 returns a float64 casted floating point type stored at key.
+//The zero value for float64 is returned if a floating point type does not exist at key.
+func (c *Config) GetFloat64(key string) (f float64) {
+	f, _ = c.GetFloat64Ok(key)
+	return
 }
 
-func (c *Config) GetFloat64Ok(key string) (float64, bool) {
+//GetFloat64 returns a float64 casted floating point type stored at key.
+//The zero value for float64 is returned if a floating point type does not exist at key.
+//The return value ok indicates whether or not a floating point type actually exists at key.
+func (c *Config) GetFloat64Ok(key string) (f float64, ok bool) {
 	v, ok := c.GetOk(key)
 	if !ok {
 		return 0, false
 	}
-	result, ok := float64(0), false
-	switch f := v.(type) {
+	f, ok = float64(0), false
+	switch fType := v.(type) {
 	case float32:
-		result, ok = float64(f), true
+		f, ok = float64(fType), true
 	case float64:
-		result, ok = f, true
+		f, ok = fType, true
 	}
-	return result, ok
+	return
 }
 
-func (c *Config) GetValues(key string) *Values {
-	v, _ := c.GetValuesOk(key)
-	return v
+//GetValues returns a *Values stored at key.
+//This means that there exists some value stored at a longer Key.
+//The returned *Values is cloned and thus changes to v do not affect c and vice versa.
+//nil is returned if a *Values does not exist at key.
+func (c *Config) GetValues(key string) (v *Values) {
+	v, _ = c.GetValuesOk(key)
+	return
 }
 
-func (c *Config) GetValuesOk(key string) (*Values, bool) {
-	v, ok := c.GetOk(key)
+//GetValuesOk returns a *Values stored at key.
+//This means that there exists some value stored at a longer Key.
+//The returned *Values is cloned and thus changes to v do not affect c and vice versa.
+//nil is returned if more values do not exist at key.
+//The return value ok indicates whether or not there are more values stored at key.
+func (c *Config) GetValuesOk(key string) (v *Values, ok bool) {
+	vInterface, ok := c.GetOk(key)
 	if !ok {
 		return nil, false
 	}
-	values, ok := v.(*Values)
-	return values, ok
+	v, ok = vInterface.(*Values)
+	return
 }
 
-func (c *Config) Get(key string) interface{} {
+//Get is sugar for c.GetKey(c.NewKey(key)).
+//It returns a raw interface{} value stored at key or nil if a value does not
+//exist at key.
+func (c *Config) Get(key string) (v interface{}) {
 	return c.GetKey(c.NewKey(key))
 }
 
-func (c *Config) GetOk(key string) (interface{}, bool) {
+//GetOk is sugar for c.GetKeyOk(c.NewKey(key)).
+//It returns a raw interface{} value stored at key or nil if a value does not
+//exist at key.
+//The return value ok indicates whether or not any value is actually stored at key.
+func (c *Config) GetOk(key string) (v interface{}, ok bool) {
 	return c.GetKeyOk(c.NewKey(key))
 }
 
-func (c *Config) GetKey(key Key) interface{} {
+//GetKey returns Get(key) called on c's internal *Values instance.
+//It returns a raw interface{} value stored at key or nil if a value does not
+//exist at key.
+func (c *Config) GetKey(key Key) (v interface{}) {
 	return c.values.Get(key)
 }
 
-func (c *Config) GetKeyOk(key Key) (interface{}, bool) {
+//GetKeyOk returns GetKey(key) called on c's internal *Values instance.
+//It returns a raw interface{} value stored at key or nil if a value does not
+//exist at key.
+//The return value ok indicates whether or not any value is actually stored at key.
+func (c *Config) GetKeyOk(key Key) (v interface{}, ok bool) {
 	return c.values.GetOk(key)
 }
 
