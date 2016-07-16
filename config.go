@@ -1,5 +1,3 @@
-//Package config provides types that allow loading, storing, retrieving, and
-//removing arbitrary values that are referenced by keys.
 package config
 
 import "sync"
@@ -16,6 +14,9 @@ import "sync"
 //Config is safe for use by multiple goroutines.
 //Though the KeyParser is not protected from concurrent use, implementations can be
 //implemented in a safe manner.
+//
+//The zero value for *Config is not in a valid state and will likely cause panics if
+//used.
 type Config struct {
 	//KeyParser that turns strings into Keys that are then used with
 	//this Config's underlying Values.
