@@ -40,7 +40,7 @@ func (v *Values) Merge(key Key, other *Values) bool {
 	return changed
 }
 
-//EachKeyValues calls visitor with each set Key value association in v.
+//EachKeyValue calls visitor with each set Key value association in v.
 func (v *Values) EachKeyValue(visitor func(key Key, value interface{})) {
 	v.lock.RLock()
 	defer v.lock.RUnlock()
@@ -114,7 +114,7 @@ func (v *Values) Clone() *Values {
 	return newValues(v.root)
 }
 
-//Removes deletes the association stored at key if one exists.
+//Remove deletes the association stored at key if one exists.
 //v is the removed value or nil if nothing was returned, and ok indicated any value
 //was actually removed.
 func (v *Values) Remove(key Key) (value interface{}, ok bool) {
@@ -134,7 +134,7 @@ func (v *Values) Remove(key Key) (value interface{}, ok bool) {
 	if found == nil {
 		return nil, false
 	}
-	var result interface{} = nil
+	var result interface{}
 	if found.isSet() {
 		result = found.value
 	} else {

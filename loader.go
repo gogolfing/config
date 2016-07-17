@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-//Type Loader defines an entity that can generate a new Values instance.
+//Loader defines an entity that can generate a new Values instance.
 type Loader interface {
 	Load() (*Values, error)
 }

@@ -2,7 +2,7 @@ package config
 
 import "sync"
 
-//Type Config provides methods to store, retrieve, and remove arbitrary values
+//Config provides methods to store, retrieve, and remove arbitrary values
 //that are referenced by keys.
 //
 //The keys to a Config type are of type string.
@@ -178,7 +178,7 @@ func (c *Config) GetFloat64(key string) (f float64) {
 	return
 }
 
-//GetFloat64 returns a float64 casted floating point type stored at key.
+//GetFloat64Ok returns a float64 casted floating point type stored at key.
 //The zero value for float64 is returned if a floating point type does not exist at key.
 //The return value ok indicates whether or not a floating point type actually exists at key.
 func (c *Config) GetFloat64Ok(key string) (f float64, ok bool) {

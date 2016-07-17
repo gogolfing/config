@@ -2,7 +2,7 @@ package config
 
 import "strings"
 
-//Type Key is the entity that allows access to values stored within a Values instance.
+//Key is the entity that allows access to values stored within a Values instance.
 type Key []string
 
 //NewKey creates a Key with all strings in parts in the returned Key.
@@ -63,7 +63,7 @@ func (k Key) EndsWith(other Key) bool {
 	if other.Len() > k.Len() {
 		return false
 	}
-	for i, _ := range other {
+	for i := range other {
 		part := other[other.Len()-1-i]
 		if k[k.Len()-1-i] != part {
 			return false
@@ -81,7 +81,7 @@ func (k Key) Append(others ...Key) Key {
 	return result
 }
 
-//AppendString returns a new Key with all strings from k and others.
+//AppendStrings returns a new Key with all strings from k and others.
 func (k Key) AppendStrings(others ...string) Key {
 	return k.Append(NewKey(others...))
 }
