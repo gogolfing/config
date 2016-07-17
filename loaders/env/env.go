@@ -1,3 +1,5 @@
+//Package env provides functions for easily creating config.Loaders that
+//load values from the process environment.
 package env
 
 import (

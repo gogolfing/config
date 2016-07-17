@@ -17,6 +17,7 @@ import "sync"
 //The zero value for *Config is not in a valid state and will likely cause panics if
 //used.
 type Config struct {
+
 	//KeyParser that turns strings into Keys that are then used with
 	//this Config's underlying Values.
 	//This enables easier access to Config's values with a simple string as opposed

@@ -45,7 +45,6 @@ func Example() {
 	fmt.Println()
 	fmt.Println(c.GetInt64Ok("bool"))
 	fmt.Println(c.GetOk("not present"))
-
 	//Output:
 	//foo bar true
 	//false true
@@ -56,4 +55,38 @@ func Example() {
 	//
 	//0 false
 	//<nil> false
+}
+
+func Example_keyPartTransform() {
+	input := `{
+		"foo": {
+			"bar": "value"
+		}
+	}`
+
+	inputReader := strings.NewReader(input)
+
+	jsonLoader := &Loader{
+		KeyPartTransform: strings.ToUpper,
+	}
+
+	loader := config.NewReaderFuncLoader(
+		jsonLoader.LoadReader,
+		inputReader,
+	)
+
+	c := config.New()
+	_, err := c.MergeLoaders(loader)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println(c.GetStringOk("FOO.BAR"))
+
+	_, ok := c.GetOk("foo.bar")
+	fmt.Println(ok)
+	//Output:
+	//value true
+	//false
 }
