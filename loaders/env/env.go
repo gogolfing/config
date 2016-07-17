@@ -7,8 +7,12 @@ import (
 	"github.com/gogolfing/config"
 )
 
+//Equal is the string around which results from os.Environ() are split into keys
+//and their respective values.
 const Equal = "="
 
+//UnderscoreSeparatorKeyParser is a config.SeparatorKeyParser that parses keys
+//around the "_" character.
 const UnderscoreSeparatorKeyParser = config.SeparatorKeyParser("_")
 
 type prefixParserLoader struct {
@@ -16,6 +20,10 @@ type prefixParserLoader struct {
 	parser config.KeyParser
 }
 
+//NewPrefixLowerUnderscoreLoader creates a config.Loader that
+//reads in all entries from os.Environ() and inserts into the resulting Values all
+//key, value associations whose keys start with prefix.
+//The key inserted is parsed with UnderscoreSeparatorKeyParser after prefix is removed.
 func NewPrefixLowerUnderscoreLoader(prefix string) config.Loader {
 	parser := config.KeyParserFunc(func(k string) config.Key {
 		return UnderscoreSeparatorKeyParser.Parse(strings.ToLower(k))
@@ -23,6 +31,10 @@ func NewPrefixLowerUnderscoreLoader(prefix string) config.Loader {
 	return NewPrefixParserLoader(prefix, parser)
 }
 
+//NewPrefixParserLoader creates a config.Loader that
+//reads in all entries from os.Environ() and inserts into the resulting Values all
+//key, value associations whose keys start with prefix.
+//The key inserted is parsed with parser after prefix is removed.
 func NewPrefixParserLoader(prefix string, parser config.KeyParser) config.Loader {
 	return &prefixParserLoader{
 		prefix: prefix,
