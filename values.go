@@ -84,14 +84,14 @@ func (v *Values) IsEmpty() bool {
 
 //Get returns the value associated with key or nil if the association does not
 //exist.
-func (v *Values) Get(key Key) (v interface{}) {
-	value, _ := v.GetOk(key)
+func (v *Values) Get(key Key) (value interface{}) {
+	value, _ = v.GetOk(key)
 	return value
 }
 
 //GetOk return the value associated with key.
 //The return value ok indicates whether or not any value is actually stored at key.
-func (v *Values) GetOk(key Key) (v interface{}, ok bool) {
+func (v *Values) GetOk(key Key) (value interface{}, ok bool) {
 	v.lock.RLock()
 	defer v.lock.RUnlock()
 
@@ -117,7 +117,7 @@ func (v *Values) Clone() *Values {
 //Removes deletes the association stored at key if one exists.
 //v is the removed value or nil if nothing was returned, and ok indicated any value
 //was actually removed.
-func (v *Values) Remove(key Key) (v interface{}, ok bool) {
+func (v *Values) Remove(key Key) (value interface{}, ok bool) {
 	v.lock.Lock()
 	defer v.lock.Unlock()
 
