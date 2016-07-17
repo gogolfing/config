@@ -56,9 +56,6 @@ func (p *prefixParserLoader) Load() (*config.Values, error) {
 
 func (p *prefixParserLoader) loadPossibleEnvironmentVariable(envVar string) (config.Key, string) {
 	equalIndex := strings.Index(envVar, Equal)
-	if equalIndex < 0 {
-		return config.Key(nil), ""
-	}
 	key, value := envVar[:equalIndex], envVar[equalIndex+1:]
 	if !strings.HasPrefix(key, p.prefix) {
 		return config.Key(nil), ""
