@@ -76,13 +76,5 @@ func testLoadStringWithWantedValues(t *testing.T, l *Loader, in string, want *co
 	}
 	if !v.Equal(want) {
 		t.Fail()
-		v.EachKeyValue(func(key config.Key, value interface{}) {
-			t.Log("v")
-			t.Log(key, value)
-		})
-		want.EachKeyValue(func(key config.Key, value interface{}) {
-			t.Log("want")
-			t.Log(key, value)
-		})
 	}
 }
