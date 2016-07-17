@@ -5,26 +5,45 @@ import (
 	"os"
 )
 
+//Type Loader defines an entity that can generate a new Values instance.
 type Loader interface {
 	Load() (*Values, error)
 }
 
+//ReaderFuncLoader is a func definition that takes in an io.Reader and returns
+//a new Values instance and possible error.
 type ReaderFuncLoader func(io.Reader) (*Values, error)
 
 type fileFuncLoader struct {
-	path string
-	rfl  ReaderFuncLoader
+	rfl   ReaderFuncLoader
+	paths []string
 }
 
-func NewFileFuncLoader(path string, rfl ReaderFuncLoader) Loader {
+//NewFileFuncLoader creates a Loader that uses rfl to load and merge Values from
+//from each file existing at each path in paths.
+//If rfl returns an error for any path in paths then that error is immediately
+//returned from Loader.Load() and Values will be nil.
+func NewFileFuncLoader(rfl ReaderFuncLoader, paths ...string) Loader {
 	return &fileFuncLoader{
-		path: path,
-		rfl:  rfl,
+		rfl:   rfl,
+		paths: paths,
 	}
 }
 
 func (l *fileFuncLoader) Load() (*Values, error) {
-	file, err := os.Open(l.path)
+	values := NewValues()
+	for _, path := range l.paths {
+		temp, err := l.loadPath(path)
+		if err != nil {
+			return nil, err
+		}
+		values.Merge(NewKey(), temp)
+	}
+	return values, nil
+}
+
+func (l *fileFuncLoader) loadPath(path string) (*Values, error) {
+	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
@@ -36,14 +55,15 @@ func (l *fileFuncLoader) Load() (*Values, error) {
 }
 
 type readerFuncLoader struct {
-	r   io.Reader
 	rfl ReaderFuncLoader
+	r   io.Reader
 }
 
-func NewReaderFuncLoader(r io.Reader, rfl ReaderFuncLoader) Loader {
+//NewReaderFuncLoader creates a Loader that return rfl(r) in its Load() method.
+func NewReaderFuncLoader(rfl ReaderFuncLoader, r io.Reader) Loader {
 	return &readerFuncLoader{
-		r:   r,
 		rfl: rfl,
+		r:   r,
 	}
 }
 

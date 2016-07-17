@@ -25,7 +25,7 @@ func (sl sliceLoader) Load() (*Values, error) {
 func TestPackageDocConfigLoader(t *testing.T) {
 	loader := sliceLoader([]interface{}{"hello", "world", 234, true})
 	c := New()
-	if changed, err := c.PutLoaders(loader); !changed || err != nil {
+	if changed, err := c.MergeLoaders(loader); !changed || err != nil {
 		t.Fail()
 	}
 

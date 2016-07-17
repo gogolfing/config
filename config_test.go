@@ -420,9 +420,9 @@ func TestConfig_Put(t *testing.T) {
 	}
 }
 
-func TestConfig_PutLoaders_success(t *testing.T) {
+func TestConfig_MergeLoaders_success(t *testing.T) {
 	c := New()
-	_, err := c.PutLoaders(intLoader(1), intLoader(2))
+	_, err := c.MergeLoaders(intLoader(1), intLoader(2))
 	if err != nil {
 		t.Error(err)
 	}
@@ -436,9 +436,9 @@ func TestConfig_PutLoaders_success(t *testing.T) {
 	}
 }
 
-func TestConfig_PutLoaders_error(t *testing.T) {
+func TestConfig_MergeLoaders_error(t *testing.T) {
 	c := New()
-	_, err := c.PutLoaders(intLoader(1), errorLoader("error"), intLoader(2))
+	_, err := c.MergeLoaders(intLoader(1), errorLoader("error"), intLoader(2))
 	if err == nil {
 		t.Fail()
 	}

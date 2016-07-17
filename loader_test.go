@@ -5,12 +5,13 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 )
 
 func TestNewFileFuncLoader(t *testing.T) {
-	l := NewFileFuncLoader("path", func(_ io.Reader) (*Values, error) { return nil, nil })
+	l := NewFileFuncLoader(func(_ io.Reader) (*Values, error) { return nil, nil }, "path")
 	if l == nil {
 		t.Fail()
 	}
@@ -18,7 +19,7 @@ func TestNewFileFuncLoader(t *testing.T) {
 	if !ok {
 		t.Fail()
 	}
-	if ffl.path != "path" || ffl.rfl == nil {
+	if ffl.rfl == nil || !reflect.DeepEqual(ffl.paths, []string{"path"}) {
 		t.Fail()
 	}
 }
@@ -35,19 +36,22 @@ func TestFileFuncLoader_Load(t *testing.T) {
 	file.Close()
 	defer os.Remove(file.Name())
 
-	l := NewFileFuncLoader(file.Name(), func(r io.Reader) (*Values, error) {
-		bytes, err := ioutil.ReadAll(r)
-		if err != nil {
-			return nil, err
-		}
-		if string(bytes) != "foobar" {
-			t.Fail()
-		}
+	l := NewFileFuncLoader(
+		func(r io.Reader) (*Values, error) {
+			bytes, err := ioutil.ReadAll(r)
+			if err != nil {
+				return nil, err
+			}
+			if string(bytes) != "foobar" {
+				t.Fail()
+			}
 
-		v := NewValues()
-		v.Put(nil, "foobar")
-		return v, nil
-	})
+			v := NewValues()
+			v.Put(nil, "foobar")
+			return v, nil
+		},
+		file.Name(),
+	)
 
 	v, err := l.Load()
 
@@ -60,7 +64,7 @@ func TestFileFuncLoader_Load(t *testing.T) {
 }
 
 func TestNewReaderFuncLoader(t *testing.T) {
-	l := NewReaderFuncLoader(strings.NewReader("foobar"), func(_ io.Reader) (*Values, error) { return nil, nil })
+	l := NewReaderFuncLoader(func(_ io.Reader) (*Values, error) { return nil, nil }, strings.NewReader("foobar"))
 	if l == nil {
 		t.Fail()
 	}
@@ -74,19 +78,22 @@ func TestNewReaderFuncLoader(t *testing.T) {
 }
 
 func TestReaderFuncLoader_Load(t *testing.T) {
-	l := NewReaderFuncLoader(strings.NewReader("foobar"), func(r io.Reader) (*Values, error) {
-		bytes, err := ioutil.ReadAll(r)
-		if err != nil {
-			return nil, err
-		}
-		if string(bytes) != "foobar" {
-			t.Fail()
-		}
+	l := NewReaderFuncLoader(
+		func(r io.Reader) (*Values, error) {
+			bytes, err := ioutil.ReadAll(r)
+			if err != nil {
+				return nil, err
+			}
+			if string(bytes) != "foobar" {
+				t.Fail()
+			}
 
-		v := NewValues()
-		v.Put(nil, "foobar")
-		return v, nil
-	})
+			v := NewValues()
+			v.Put(nil, "foobar")
+			return v, nil
+		},
+		strings.NewReader("foobar"),
+	)
 
 	v, err := l.Load()
 

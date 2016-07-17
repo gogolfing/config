@@ -2,12 +2,11 @@ package config
 
 import "sync"
 
-//Type Config provides an methods to store, retrieve, and remove arbitrary values
+//Type Config provides methods to store, retrieve, and remove arbitrary values
 //that are referenced by keys.
 //
-//The keys to a Config type are of type string. These string keys are parsed into
-//Key types via a KeyParser.
-//
+//The keys to a Config type are of type string.
+//These string keys are parsed into Key types via a KeyParser.
 //Key types that are parsed by a Config type are then used to reference into Values.
 //Values is the storage type providing all functionality to Config.
 //
@@ -20,7 +19,7 @@ import "sync"
 type Config struct {
 	//KeyParser that turns strings into Keys that are then used with
 	//this Config's underlying Values.
-	//This enabled easier access to Config value with a simple string as opposed
+	//This enables easier access to Config's values with a simple string as opposed
 	//to a Key type.
 	KeyParser KeyParser
 
@@ -55,20 +54,19 @@ func (c *Config) AddLoaders(loaders ...Loader) *Config {
 	return c
 }
 
-//LoadAll is a helper for c.PutLoaders() called with all Loaders
+//LoadAll is a helper for c.MergeLoaders() called with all Loaders
 //added previously with c.AddLoaders().
 func (c *Config) LoadAll() (bool, error) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	return c.PutLoaders(c.loaders...)
+	return c.MergeLoaders(c.loaders...)
 }
 
 //Values returns the internal Values used for storage.
-//The Values type is sage for use by multiple goroutines independent of
-//the Config type.
+//The Values type is safe for use by multiple goroutines independent of the Config type.
 //The internal reference is simply returned, and thus modifications to the
-//returned *Values will affect c.
+//returned *Values WILL AFFECT c.
 func (c *Config) Values() *Values {
 	return c.values
 }
@@ -200,7 +198,7 @@ func (c *Config) GetFloat64Ok(key string) (f float64, ok bool) {
 
 //GetValues returns a *Values stored at key.
 //This means that there exists some value stored at a longer Key.
-//The returned *Values is cloned and thus changes to v do not affect c and vice versa.
+//The returned *Values is cloned and thus changes to v DO NOT AFFECT c and vice versa.
 //nil is returned if a *Values does not exist at key.
 func (c *Config) GetValues(key string) (v *Values) {
 	v, _ = c.GetValuesOk(key)
@@ -209,7 +207,7 @@ func (c *Config) GetValues(key string) (v *Values) {
 
 //GetValuesOk returns a *Values stored at key.
 //This means that there exists some value stored at a longer Key.
-//The returned *Values is cloned and thus changes to v do not affect c and vice versa.
+//The returned *Values is cloned and thus changes to v DO NOT AFFECT c and vice versa.
 //nil is returned if more values do not exist at key.
 //The return value ok indicates whether or not there are more values stored at key.
 func (c *Config) GetValuesOk(key string) (v *Values, ok bool) {
@@ -251,21 +249,28 @@ func (c *Config) GetKeyOk(key Key) (v interface{}, ok bool) {
 	return c.values.GetOk(key)
 }
 
-func (c *Config) Merge(other *Config) bool {
+//Merge is sugar for c.Values().Merge(Key(nil), other.Values()).
+func (c *Config) Merge(other *Config) (changed bool) {
 	return c.values.Merge(nil, other.values)
 }
 
-func (c *Config) Put(key string, value interface{}) bool {
+//Put is sugar for c.PutKey(c.NewKey(key), value).
+func (c *Config) Put(key string, value interface{}) (changed bool) {
 	return c.PutKey(c.NewKey(key), value)
 }
 
-func (c *Config) PutKey(key Key, value interface{}) bool {
+//PutKey is sugar for c.Values().Put(key, value).
+func (c *Config) PutKey(key Key, value interface{}) (changed bool) {
 	return c.values.Put(key, value)
 }
 
-func (c *Config) PutLoaders(loaders ...Loader) (bool, error) {
+//MergeLoaders creates a temporary Values into which all Loaders in loaders are merged.
+//If an error occurs on any individual Loader.Load(), then MergeLoaders returns
+//immediately with that error and does not change c in any way.
+//If all Loader.Load() do not error, then the temporary Values are merged into
+//c's Values.
+func (c *Config) MergeLoaders(loaders ...Loader) (changed bool, err error) {
 	temp := NewValues()
-	changed := false
 	for _, loader := range loaders {
 		loaderValues, err := loader.Load()
 		if err != nil {
@@ -277,10 +282,14 @@ func (c *Config) PutLoaders(loaders ...Loader) (bool, error) {
 	return changed, nil
 }
 
-func (c *Config) Remove(key string) (interface{}, bool) {
+//Remove removes a Key value association in c's Values.
+//It returns the value being removed. ok indicates whether or not a value was
+//actually stored at key and was removed.
+func (c *Config) Remove(key string) (value interface{}, ok bool) {
 	return c.values.Remove(c.NewKey(key))
 }
 
+//NewKey returns the Key created by c.KeyParser.Parse(k).
 func (c *Config) NewKey(k string) Key {
 	return c.KeyParser.Parse(k)
 }
