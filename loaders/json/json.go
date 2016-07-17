@@ -1,5 +1,5 @@
 //Package json provides a Loader type that can be used in conjunction with
-//the parent config package to create config.Loaders to load values from JSON
+//the parent config package to create a config.Loader to load values from JSON
 //encoded objects.
 package json
 
@@ -12,13 +12,13 @@ import (
 )
 
 //Loader is a collection of settings that can be used with config.NewReaderFuncLoader()
-//in order to create a config.Loader that parses JSON data.
+//in order to create a config.Loader that parses JSON objects.
 //Loader itself is not a config.Loader.
-//The empty valued Loader has same defaults where all key, values found withing the JSON
-//are included in the reuslting Values, JSON nulls are inserted at nil, and JSON numbers
+//The empty valued Loader has sane defaults where all key, values found within the JSON
+//are included in the resulting Values, JSON nulls are inserted at nil, and JSON numbers
 //are converted to float64 and int64 equivalents.
 //See the individual fields for overriding this behaviour.
-//See the package example for use with the config package.
+//See the package examples for use with the config package.
 type Loader struct {
 
 	//KeyPrefix is a Key that all Keys found in the JSON must start with in order
@@ -41,8 +41,10 @@ type Loader struct {
 	//via encoding/json.Number.
 	//The zero value means all numbers will be parsed into float64 and int64 types.
 	//
-	//If NumberAsString is false, when parsing a JSON number the following logic is used.
-	//If encoding/json.Number.Int64() returns an error, then Float64()'s result is inserted.
+	//If NumberAsString is false, when parsing a JSON number the following logic
+	//is used.
+	//If encoding/json.Number.Int64() returns an error, then Float64()'s result
+	//is inserted.
 	//If their is no error, then the int64 value is inserted.
 	NumberAsString bool
 
@@ -72,6 +74,9 @@ func (l *Loader) LoadBytes(in []byte) (*config.Values, error) {
 //If the call to encoding/json.Decoder.Decode() returns an error, then that error
 //is returned with nil *Values.
 //in must represent a JSON encoded object. Any other type will error.
+//
+//Notice that LoadReader is a config.ReaderFuncLoader and it is used in this manner
+//in the examples.
 func (l *Loader) LoadReader(in io.Reader) (*config.Values, error) {
 	object, err := parseJson(in)
 	if err != nil {
@@ -87,7 +92,12 @@ func (l *Loader) loadMapIntoValues(key config.Key, values *config.Values, object
 		if l.KeyPartTransform != nil {
 			keyPart = l.KeyPartTransform(keyPart)
 		}
-		l.loadSingleIntoValues(key.AppendStrings(keyPart), values, v)
+		nextKey := key.AppendStrings(keyPart)
+		if m, ok := v.(map[string]interface{}); ok {
+			l.loadMapIntoValues(nextKey, values, m)
+		} else {
+			l.loadSingleIntoValues(nextKey, values, v)
+		}
 	}
 }
 
@@ -102,8 +112,6 @@ func (l *Loader) loadSingleIntoValues(key config.Key, values *config.Values, val
 		values.Put(key, nil)
 	}
 	switch v := value.(type) {
-	case map[string]interface{}:
-		l.loadMapIntoValues(key, values, v)
 	case jsonlib.Number:
 		l.loadNumberIntoValues(key, values, v)
 	default:

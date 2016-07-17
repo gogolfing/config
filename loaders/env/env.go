@@ -1,4 +1,4 @@
-//Package env provides functions for easily creating config.Loaders that
+//Package env provides functions for easily creating a config.Loader that
 //load values from the process environment.
 package env
 
