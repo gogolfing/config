@@ -1,12 +1,10 @@
-package json_test
+package json
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/gogolfing/config"
-	jsonloader "github.com/gogolfing/config/loaders/json"
 )
 
 func Example() {
@@ -25,18 +23,17 @@ func Example() {
 
 	inputReader := strings.NewReader(input)
 
-	loader := config.NewReaderFuncLoader(inputReader, (&jsonloader.Loader{}).LoadReader)
+	loader := config.NewReaderFuncLoader(
+		(&Loader{}).LoadReader,
+		inputReader,
+	)
 
 	c := config.New()
-	_, err := c.PutLoaders(loader)
+	_, err := c.MergeLoaders(loader)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-
-	c.Values().EachKeyValue(func(key config.Key, value interface{}) {
-		log.Println(key, value)
-	})
 
 	fmt.Println(c.GetStringOk("string"))
 	fmt.Println(c.GetBoolOk("bool"))
