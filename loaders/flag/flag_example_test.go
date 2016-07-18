@@ -7,7 +7,7 @@ import (
 )
 
 func Example() {
-	loader := NewLoader("")
+	loader := New("")
 
 	boolVar := false
 

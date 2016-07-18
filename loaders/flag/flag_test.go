@@ -8,7 +8,7 @@ import (
 )
 
 func TestLoader_Load(t *testing.T) {
-	l := NewLoader("")
+	l := New("")
 	l.FlagSet.String("a", "", "")
 	l.Args = []string{"-a", "value"}
 
@@ -19,7 +19,7 @@ func TestLoader_Load(t *testing.T) {
 }
 
 func TestLoader_Load_idempotent(t *testing.T) {
-	l := NewLoader("")
+	l := New("")
 	l.FlagSet.String("a", "", "")
 	l.Args = []string{"-a", "value"}
 
@@ -31,7 +31,7 @@ func TestLoader_Load_idempotent(t *testing.T) {
 }
 
 func TestLoader_Load_error(t *testing.T) {
-	l := NewLoader("")
+	l := New("")
 	l.Args = []string{"-a", "value"}
 	l.FlagSet.SetOutput(ioutil.Discard)
 
