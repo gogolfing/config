@@ -20,7 +20,6 @@ import (
 //See the individual fields for overriding this behaviour.
 //See the package examples for use with the config package.
 type Loader struct {
-
 	//KeyPrefix is a Key that all Keys found in the JSON must start with in order
 	//to be included in the resulting config.Values.
 	//Notice that an empty KeyPrefix means all Keys are matched.
