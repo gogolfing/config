@@ -21,8 +21,8 @@ func Example() {
 
 	loader.AddAlias("aliased", "a")
 
-	//This means that withdefault -> default will be inserted in the resulting Config.
-	//Leaving this blank would not insert this associated because the -withdefault
+	//This means that "withdefault" -> "default" will be inserted in the resulting Config.
+	//Leaving this blank would not insert that association because the -withdefault
 	//flag is not set below.
 	loader.LoadDefaults = true
 
@@ -50,7 +50,7 @@ func Example() {
 	fmt.Println(c.GetFloat64Ok("f"))
 	fmt.Println(c.GetStringOk("withdefault"))
 	fmt.Println(c.GetStringOk("one.two.three"))
-	fmt.Println(c.GetStringOk("a")) //notice the use of the a key - aliased above.
+	fmt.Println(c.GetStringOk("a")) //notice the use of the "a" key - aliased above.
 	//Output:
 	//sValue true
 	//12 true

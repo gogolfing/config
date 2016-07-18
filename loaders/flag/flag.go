@@ -12,19 +12,19 @@ import (
 	"github.com/gogolfing/config"
 )
 
-//DashSeparatorKeyParaser is the default KeyParser a Loader (set in New()).
+//DashSeparatorKeyParaser is the default KeyParser for a Loader (set in New()).
 const DashSeparatorKeyParser = config.SeparatorKeyParser("-")
 
 //Loader provides settings to load values from command line arguments (or any
 //slice of strings).
 //Loader implements config.Loader.
 type Loader struct {
-	//Args is the slice of stings sent to flaglib.FlagSet.Parse().
-	//This is set to os.Args[1:] by New().
+	//Args is the slice of strings sent to flaglib.FlagSet.Parse().
+	//It is set to os.Args[1:] by New().
 	Args []string
 
 	//Aliases provides a way to change the name of a command line flag before it
-	//gets parsed by KeyParser and inserted into Values instance.
+	//gets parsed by KeyParser and inserted into the resulting Values instance.
 	//If a flaglib.Flag's Name is a key in this map, then the associated value
 	//will be used to create the key instead.
 	Aliases map[string]string
@@ -35,7 +35,7 @@ type Loader struct {
 
 	//LoadDefaults tells Loader to include in the resulting Values all flags that
 	//are defined even if they are not set.
-	//The default operation is the only insert flags that have been set explicitly
+	//The default operation is the to only insert flags that have been set explicitly
 	//in Args.
 	LoadDefaults bool
 
@@ -46,7 +46,7 @@ type Loader struct {
 }
 
 //New creates a *Loader with Args set to os.Args[1:],
-//Aliases set to a new, empty map,
+//Aliases set to a new map,
 //KeyParser set to DashSeparatorKeyParser,
 //LoadDefaults set to false,
 //and FlagSet set to flaglib.NewFlagSet(name, flaglib.ContinueOnError).
@@ -67,7 +67,7 @@ func (l *Loader) AddAlias(name, alias string) *Loader {
 }
 
 //Load is the config.Loader required method.
-//It l.FlagSet.Parse(l.Args) if l.FlagSet.Parsed() is false.
+//It calls l.FlagSet.Parse(l.Args) if l.FlagSet.Parsed() is false.
 //It then calls one of the flaglib.FlagSet.Visit*() methods depending on the value
 //of l.LoadDefaults, and parses each flag's Name or alias and inserts it into the
 //returned Values.
