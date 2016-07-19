@@ -146,8 +146,16 @@ func (v *Values) Remove(key Key) (value interface{}, ok bool) {
 	return result, true
 }
 
+//node is the internal node type for a Values tree.
+//It stores the value stored at its location in the tree and links to children node.
 type node struct {
-	value    interface{}
+	//value is the value stored at this location in the tree.
+	//It may be nil.
+	//It is determined to be set by the isSet() method.
+	value interface{}
+
+	//children holds the references to this node's child nodes.
+	//The keys in children are the parts to the larger Key that references a value.
 	children map[string]*node
 }
 
