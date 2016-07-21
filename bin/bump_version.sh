@@ -25,8 +25,11 @@ fi
 
 #push master branch and new tag to origin.
 git push origin master tag "$version"
+did_push=$?
 
-if [ $? -eq 0 ]; then
+echo "\n"
+
+if [ $did_push -eq 0 ]; then
     echo "Version bump, commit, tag, and push to origin/master successful!!"
 else
     >&2 echo "failed to push new commit and tag to origin/master"
