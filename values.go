@@ -146,11 +146,20 @@ func (v *Values) Remove(key Key) (value interface{}, ok bool) {
 	return result, true
 }
 
+//node is the internal node type for a Values tree.
+//It stores the value stored at its location in the tree and links to children node.
 type node struct {
-	value    interface{}
+	//value is the value stored at this location in the tree.
+	//It may be nil.
+	//It is determined to be set by the isSet() method.
+	value interface{}
+
+	//children holds the references to this node's child nodes.
+	//The keys in children are the parts to the larger Key that references a value.
 	children map[string]*node
 }
 
+//newNodeValues creates a *node to value set to value and children set to nil.
 func newNodeValue(value interface{}) *node {
 	n := newNode()
 	n.value = value
@@ -158,6 +167,7 @@ func newNodeValue(value interface{}) *node {
 	return n
 }
 
+//newNode creates a *node with nil value and empty children.
 func newNode() *node {
 	return &node{
 		value:    nil,
@@ -165,14 +175,19 @@ func newNode() *node {
 	}
 }
 
+//isEmpty determines whether or not n is empty.
+//true if not n.isSet() and length of n.children is 0, false otherwise.
 func (n *node) isEmpty() bool {
 	return !n.isSet() && len(n.children) == 0
 }
 
+//isSet determines whether or not n is set (n.values can assumed to be keyed).
+//true if n.children is nil, false otherwise.
 func (n *node) isSet() bool {
 	return n.children == nil
 }
 
+//put puts value at key within n's subtree or at n if key is empty.
 func (n *node) put(key Key, value interface{}) bool {
 	if key.IsEmpty() {
 		return n.setValue(value)
@@ -182,6 +197,8 @@ func (n *node) put(key Key, value interface{}) bool {
 	return child.put(remainingKey, value) || changed
 }
 
+//setValue sets n value to value.
+//if value is a *Values, then n.setValues(values.(*Values)) is used.
 func (n *node) setValue(value interface{}) bool {
 	if values, ok := value.(*Values); ok {
 		return n.setValues(values)
@@ -197,6 +214,7 @@ func (n *node) setValue(value interface{}) bool {
 	return changed
 }
 
+//setValues calls n.put() for each key, value in values.
 func (n *node) setValues(values *Values) bool {
 	if values.IsEmpty() {
 		if n.isEmpty() {
@@ -213,6 +231,8 @@ func (n *node) setValues(values *Values) bool {
 	return changed
 }
 
+//clone returns a cloned n with a shallow copy of n.value and n.children cloned
+//via n.cloneChildren().
 func (n *node) clone() *node {
 	return &node{
 		value:    n.value,
@@ -220,6 +240,8 @@ func (n *node) clone() *node {
 	}
 }
 
+//cloneChildren returns a new map matching n.children by calling *node.clone()
+//on each child in n.children.
 func (n *node) cloneChildren() map[string]*node {
 	if n.children == nil {
 		return nil
@@ -231,6 +253,8 @@ func (n *node) cloneChildren() map[string]*node {
 	return result
 }
 
+//eachKeyValues calls visitor for each set value in n's subtree.
+//key is a Key onto which to append all descdendent keys.
 func (n *node) eachKeyValue(key Key, visitor func(key Key, value interface{})) {
 	if n.isSet() {
 		visitor(key, n.value)
@@ -241,13 +265,13 @@ func (n *node) eachKeyValue(key Key, visitor func(key Key, value interface{})) {
 	}
 }
 
+//equal determines if n and other are equal by n.value == other.value and n.childrenEqual(other)
 func (n *node) equal(other *node) bool {
-	if n.value != other.value {
-		return false
-	}
-	return n.childrenEqual(other)
+	return n.value == other.value && n.childrenEqual(other)
 }
 
+//childrenEqual determines if n and other's children have the same set of keys
+//and all associated child nodes are equal via *node.equal().
 func (n *node) childrenEqual(other *node) bool {
 	if len(n.children) != len(other.children) {
 		return false
@@ -261,17 +285,26 @@ func (n *node) childrenEqual(other *node) bool {
 	return true
 }
 
-func (n *node) findDescendent(parent *node, key Key, canChange, hasChanged bool) (*node, *node, bool) {
+//findDescendent finds a desired descendent (node at any lower level) and its possible
+//parent.
+//The parameter parent should be n's parent. This must be ensured by the caller.
+func (n *node) findDescendent(parent *node, key Key, canChange, hasChanged bool) (foundParent *node, found *node, changed bool) {
+	//if there is no more key to look into, then return parent, n, and hasChanged.
 	if key.IsEmpty() {
 		return parent, n, hasChanged
 	}
+	//find the child at the next part in key, possibly creating or changing with canChange.
 	child, changed := n.findChild(key[0], canChange)
 	if child == nil {
 		return parent, nil, changed
 	}
+	//recurse into children.
 	return child.findDescendent(n, key[1:], canChange, changed || hasChanged)
 }
 
+//findChild find a child node of n at keyPart.
+//canChange tells findChild if it can modify n.children to modify n.value and or n.children.
+//Essentially, canChange being true performs a put, and false performs a get or lookup.
 func (n *node) findChild(keyPart string, canChange bool) (*node, bool) {
 	changed := false
 	if n.isSet() {
