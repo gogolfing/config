@@ -557,7 +557,7 @@ func TestValues_Put(t *testing.T) {
 			&node{
 				value: nil,
 				children: map[string]*node{
-					"hello": &node{
+					"hello": {
 						value:    nil,
 						children: nil,
 					},
@@ -575,7 +575,7 @@ func TestValues_Put(t *testing.T) {
 			&node{
 				value: nil,
 				children: map[string]*node{
-					"hello": &node{
+					"hello": {
 						value:    nil,
 						children: nil,
 					},
@@ -591,7 +591,7 @@ func TestValues_Put(t *testing.T) {
 			&node{
 				value: nil,
 				children: map[string]*node{
-					"hello": &node{
+					"hello": {
 						value:    2,
 						children: nil,
 					},
@@ -609,7 +609,7 @@ func TestValues_Put(t *testing.T) {
 			&node{
 				value: nil,
 				children: map[string]*node{
-					"hello": &node{
+					"hello": {
 						value:    2,
 						children: nil,
 					},
@@ -627,7 +627,7 @@ func TestValues_Put(t *testing.T) {
 			&node{
 				value: nil,
 				children: map[string]*node{
-					"hello": &node{
+					"hello": {
 						value:    "two",
 						children: nil,
 					},
@@ -643,10 +643,10 @@ func TestValues_Put(t *testing.T) {
 			&node{
 				value: nil,
 				children: map[string]*node{
-					"hello": &node{
+					"hello": {
 						value: nil,
 						children: map[string]*node{
-							"world": &node{
+							"world": {
 								value:    nil,
 								children: nil,
 							},
@@ -666,10 +666,10 @@ func TestValues_Put(t *testing.T) {
 			&node{
 				value: nil,
 				children: map[string]*node{
-					"hello": &node{
+					"hello": {
 						value: nil,
 						children: map[string]*node{
-							"world": &node{
+							"world": {
 								value:    nil,
 								children: nil,
 							},
@@ -687,10 +687,10 @@ func TestValues_Put(t *testing.T) {
 			&node{
 				value: nil,
 				children: map[string]*node{
-					"hello": &node{
+					"hello": {
 						value: nil,
 						children: map[string]*node{
-							"world": &node{
+							"world": {
 								value:    "something",
 								children: nil,
 							},
@@ -710,10 +710,10 @@ func TestValues_Put(t *testing.T) {
 			&node{
 				value: nil,
 				children: map[string]*node{
-					"hello": &node{
+					"hello": {
 						value: nil,
 						children: map[string]*node{
-							"world": &node{
+							"world": {
 								value:    "something",
 								children: nil,
 							},
@@ -733,10 +733,10 @@ func TestValues_Put(t *testing.T) {
 			&node{
 				value: nil,
 				children: map[string]*node{
-					"a": &node{
+					"a": {
 						value: nil,
 						children: map[string]*node{
-							"b": &node{
+							"b": {
 								value:    "b",
 								children: nil,
 							},
@@ -790,7 +790,7 @@ func TestValues_Put(t *testing.T) {
 			&node{
 				value: nil,
 				children: map[string]*node{
-					"a": &node{
+					"a": {
 						value:    "a",
 						children: nil,
 					},
@@ -810,11 +810,11 @@ func TestValues_Put(t *testing.T) {
 			&node{
 				value: nil,
 				children: map[string]*node{
-					"else": &node{
+					"else": {
 						value:    "else",
 						children: nil,
 					},
-					"a": &node{
+					"a": {
 						value:    "a",
 						children: nil,
 					},
@@ -938,7 +938,7 @@ func TestValues_Put(t *testing.T) {
 			&node{
 				value: nil,
 				children: map[string]*node{
-					"a": &node{
+					"a": {
 						value:    nil,
 						children: nil,
 					},
@@ -961,7 +961,7 @@ func TestValues_Put(t *testing.T) {
 			&node{
 				value: nil,
 				children: map[string]*node{
-					"a": &node{
+					"a": {
 						value: nil,
 						children: map[string]*node{
 							"b": newNodeValue("b"),
@@ -989,13 +989,13 @@ func TestValues_Put(t *testing.T) {
 			&node{
 				value: nil,
 				children: map[string]*node{
-					"a": &node{
+					"a": {
 						value: nil,
 						children: map[string]*node{
 							"b": newNodeValue("b"),
 							"c": newNodeValue("new c"),
 							"d": newNodeValue("d"),
-							"e": &node{
+							"e": {
 								value: nil,
 								children: map[string]*node{
 									"f": newNodeValue("f"),
