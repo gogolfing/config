@@ -433,13 +433,13 @@ func TestValues_EachKeyValue(t *testing.T) {
 			},
 		},
 	}
-	for _, test := range tests {
+	for index, test := range tests {
 		result := map[string]interface{}{}
 		test.values.EachKeyValue(func(key Key, value interface{}) {
 			result[strings.Join(key, ".")] = value
 		})
 		if !reflect.DeepEqual(result, test.result) {
-			t.Errorf("%v, *Values.EachKeyValue() = %v WANT %v")
+			t.Errorf("%v, *Values.EachKeyValue() = %v WANT %v", index, result, test.result)
 		}
 	}
 }
@@ -1137,7 +1137,7 @@ func TestValues_GetOk(t *testing.T) {
 	for _, test := range tests {
 		result, ok := values.GetOk(test.key)
 		if ok != test.ok {
-			t.Errorf("%v, ok = %v WANT %v", ok, test.ok)
+			t.Errorf("result, ok = result, %v WANT result, %v", ok, test.ok)
 		}
 		if !reflect.DeepEqual(result, test.result) {
 			t.Errorf("%v, reflect.DeepEqual(%v, %v) should be true", test.key, result, test.result)
