@@ -473,6 +473,9 @@ func TestConfig_NewKey(t *testing.T) {
 	if !key.Equal(NewKey("this", "is", "a", "parsed", "key")) {
 		t.Fail()
 	}
+	if !called {
+		t.Fail()
+	}
 }
 
 type getFullConfigTest struct {

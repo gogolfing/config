@@ -12,7 +12,7 @@ import (
 	"github.com/gogolfing/config"
 )
 
-//DashSeparatorKeyParaser is the default KeyParser for a Loader (set in New()).
+//DashSeparatorKeyParser is the default KeyParser for a Loader (set in New()).
 const DashSeparatorKeyParser = config.SeparatorKeyParser("-")
 
 //Loader provides settings to load values from command line arguments (or any

@@ -1153,7 +1153,7 @@ func TestValues_Clone(t *testing.T) {
 		{
 			func() *Values {
 				v := NewValues()
-				v.Put(NewKey(), "value at emtpy key")
+				v.Put(NewKey(), "value at empty key")
 				return v
 			}(),
 		},

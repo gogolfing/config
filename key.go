@@ -109,6 +109,6 @@ func (p SeparatorKeyParser) Parse(k string) Key {
 	return NewKeySep(k, string(p))
 }
 
-//The default KeyParser set to c.KeyParser in New().
+//PeriodSeparatorKeyParser is the default KeyParser set to c.KeyParser in New().
 //See SeparatorKeyParser.
 const PeriodSeparatorKeyParser = SeparatorKeyParser(".")
