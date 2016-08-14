@@ -8,4 +8,4 @@ arbitrary values referenced by keys.
 [![Go Report Card](https://goreportcard.com/badge/github.com/gogolfing/config)](https://goreportcard.com/report/github.com/gogolfing/config)
 
 ## Documentation and Usage
-Full documentation and usage examples can be found at [![GoDoc](https://godoc.org/github.com/gogolfing/config?status.svg)](https://godoc.org/github.com/gogolfing/config)
+Full documentation and examples can be found at [![GoDoc](https://godoc.org/github.com/gogolfing/config?status.svg)](https://godoc.org/github.com/gogolfing/config)
