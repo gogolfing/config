@@ -10,11 +10,14 @@ notifications:
     on_success: change
     on_failure: change
 
+env:
+  - GO111MODULE=on
+
 install:
   - ./bin/travis/install
 
 script:
-  - ./bin/travis/test_coverage.sh
+  - ./bin/travis/test-coverage
 
 after_success:
-  - ./bin/coveralls/push.sh
+  - ./bin/coveralls/push
